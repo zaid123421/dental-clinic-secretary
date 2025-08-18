@@ -1,12 +1,16 @@
-import './App.css';
+import { Route, Routes } from "react-router-dom";
+import Login from "./pages/Authentication/Login";
+import Patients from "./pages/Patients/Patients";
+import AddPatient from "./pages/Patients/AddPatient";
+import ShowPatient from "./pages/Patients/ShowPatient";
 
-function App() {
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-      </header>
-    </div>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/patients" element={<Patients />} />
+      <Route path="/add-patient" element={<AddPatient />} />
+      <Route path="/show-patient" element={<ShowPatient />} />
+    </Routes>
   );
 }
-
-export default App;
