@@ -1,7 +1,6 @@
   // Components
   import Button from "../../components/Button";
   import FormInput from "../../components/FormInput";
-  import PlusButton from "../../components/PlusButton";
   import Sidebar from "../../components/Sidebar";
   import Title from "../../components/Title";
   import Confirm from "../../components/Confirm";
@@ -17,7 +16,6 @@
   import successImage from "../../assets/success.gif";
   import error from "../../assets/error.gif";
   import confirmDelete from "../../assets/deleteConfirm.jpg"
-  import Unban from "../../assets/UnBan.jpg";
   // Hooks
   import { useEffect, useRef, useState } from "react";
   // Axios Library
@@ -33,40 +31,19 @@
     // States
     // refreshFlag To Refresh The Component After An Event
     const [refreshFlag, setRefreshFlag] = useState(0);
-    // SelectedType To Choose The Type Of Data (Employees Or Patients)
-    const [selectedType, setSelectedType] = useState("Employees");
-    // These Two States To Store The Data From The Backend
-    const [employees, setEmployees] = useState(null);
+    // This State To Store The Data From The Backend
     const [patients, setPatients] = useState(null);
     // Loading Spinner To Communicating With Backend
     const [isLoading, setIsLoading] = useState(false);
-    // To Show Ban Box
-    const [banBox, setBanBox] = useState(false);
-    // To Show UnBan Confirm Box
-    const [confirmUnBanBox, setConfirmUnBanBox] = useState(false);
-    // To Manipulate Style According To Checked Or Not
-    const [isChecked, setIsChecked] = useState(true);
-    // These Two States To Show Confirm Delete Box (Employee and Patient)
-    const [confirmDeleteEmployee, setConfirmDeleteEmployee] = useState(false);
+    // This State To Show Confirm Delete Box (Patient)
     const [confirmDeletePatient, setConfirmDeletePatient] = useState(false);
     // Pagination
     const [pagination, setPagination] = useState({
       current_page: 1,
       last_page: null,
     });
-
-    // State To Store Ban Duration If its Exist
-    const [banDuration, setBanDuration] = useState({
-      duration_unit: "days",
-      duration_value: 1,
-    });
-
-    // Employee Informations
-    const [employee, setEmployee] = useState({
-      id: null,
-      name: "",
-      phone_number: null,
-    });
+    // State For Seatch
+    const [search, setSearch] = useState("");
 
     // Patient Informations
     const [patient, setPatient] = useState({
@@ -82,40 +59,14 @@
       image: "",
     });
 
-    // useRef To Store id and url When Need To Communicating Backend
-    const banId = useRef(null);
-    const banUrl = useRef(null);
-
     // useNavigate
     const nav = useNavigate();
-// State للبحث
-const [search, setSearch] = useState("");
 
-// فلترة المرضى حسب الاسم أو رقم الهاتف
-const filteredPatients = patients?.filter((patient) =>
-  patient.name.toLowerCase().includes(search.toLowerCase()) ||
-  patient.phone_number.toString().includes(search)
-);
     // Cookies
     const cookie = new Cookies();
     // Get The Token That Stored In The Browser
     const token = cookie.get("token");
 
-    useEffect(() => {
-      axios
-        .get(`${BaseUrl}/employee`, {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((data) => {
-          setEmployees(data.data.data);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }, [refreshFlag]);
 
     useEffect(() => {
       axios
@@ -139,16 +90,7 @@ const filteredPatients = patients?.filter((patient) =>
     }, [refreshFlag]);
 
     useEffect(() => {
-      if (modal.isOpen) {
-        const timer = setTimeout(() => {
-          setModal((prev) => ({ ...prev, isOpen: false }));
-        }, 3000);
-        return () => clearTimeout(timer);
-      }
-    }, [modal.isOpen]);
-
-    useEffect(() => {
-      if (confirmDeleteEmployee || confirmDeletePatient || banBox) {
+      if (confirmDeletePatient) {
         document.body.style.overflow = "hidden";
       } else {
         document.body.style.overflow = "auto";
@@ -156,34 +98,16 @@ const filteredPatients = patients?.filter((patient) =>
       return () => {
         document.body.style.overflow = "auto";
       };
-    }, [confirmDeleteEmployee, confirmDeletePatient, banBox]);
+    }, [confirmDeletePatient]);
 
-  async function DeleteEmployee() {
-    setIsLoading(true);
-    try {
-      await axios.delete(`${BaseUrl}/employee/${employee.id}`, {
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setRefreshFlag((prev) => prev + 1);
-      setModal({
-        isOpen: true,
-        message: "The Employee Has Been Deleted Successfully !",
-        image: successImage,
-      });
-    } catch {
-      setModal({
-        isOpen: true,
-        message: "Something Went Wrong !",
-        image: error,
-      });
-    } finally {
-      setConfirmDeleteEmployee(false);
-      setIsLoading(false);
-    }
-  }
+    useEffect(() => {
+      if (modal.isOpen) {
+        const timer = setTimeout(() => {
+          setModal((prev) => ({ ...prev, isOpen: false }));
+        }, 3000);
+        return () => clearTimeout(timer);
+      }
+    }, [modal.isOpen]);
 
   async function DeletePatient() {
     setIsLoading(true);
@@ -231,6 +155,12 @@ const filteredPatients = patients?.filter((patient) =>
       setRefreshFlag((prev) => prev + 1)
     }
   }
+
+  // Filters Patients
+  const filteredPatients = patients?.filter((patient) =>
+    patient.name.toLowerCase().includes(search.toLowerCase()) ||
+    patient.phone_number.toString().includes(search)
+  );
 
   const showPatients = filteredPatients?.map((patient, index) => (
     <tr
@@ -379,17 +309,6 @@ const filteredPatients = patients?.filter((patient) =>
           )}
 
         </div>
-
-
-        {/* Show Delete Employee Confirm Box */}
-        {confirmDeleteEmployee && (
-          <Confirm
-            img={confirmDelete}
-            label={<>Do You Want Really To Delete <span className="font-bold">{employee.name}</span> ?</>}
-            onCancel={() => setConfirmDeleteEmployee(false)}
-            onConfirm={() => DeleteEmployee()}
-          />
-        )}
 
         {/* Show Delete Patient Confirm Box */}
         {confirmDeletePatient && (
