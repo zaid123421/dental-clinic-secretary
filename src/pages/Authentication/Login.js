@@ -17,13 +17,12 @@ import Cookies from "universal-cookie";
 
 export default function Login() {
   // States
-    // Loading Spinner To Communicating With Backend
-    const [isLoading, setIsLoading] = useState(false);
-    // To Store Inputs From User
-    const [formData, setFormData] = useState({
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
     phone_number: "",
     password: "",
-    });
+  });
+  const [error, setError] = useState(""); // <-- لإظهار رسالة الخطأ
 
   // useNavigate
   const nav = useNavigate();
@@ -32,41 +31,42 @@ export default function Login() {
   const cookie = new Cookies();
 
   // Functions
-    // To Handle Changes in The Inputs Form
-    const handleChange = (e) => {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(""); // يمسح رسالة الخطأ عند التعديل
+  };
 
-    // To Send Login From To The backend
-    async function Submit() {
-      setIsLoading(true);
-      try {
-        const res = await axios.post(`${BaseUrl}/receptionist/login`, formData, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        console.log(res.data.data.name);
-        cookie.set("token", res.data.data.token, { path: "/" });
-        cookie.set("username", res.data.data.name, { path: "/" });
-        nav("/patients");
-      } catch (err) {
-        console.log(err);
-      } finally {
-        setIsLoading(false);
+  async function Submit() {
+    setIsLoading(true);
+    try {
+      const res = await axios.post(`${BaseUrl}/receptionist/login`, formData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      cookie.set("token", res.data.data.token, { path: "/" });
+      cookie.set("username", res.data.data.name, { path: "/" });
+      nav("/patients");
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        setError("Invalid phone number or password");
+      } else {
+        setError("An unexpected error occurred, please try again");
       }
+    } finally {
+      setIsLoading(false);
     }
+  }
 
   return (
     <>
-    {/* The Main Container */}
+      {/* The Main Container */}
       <div className="flex items-center justify-center h-screen bg-[#089bab1c] md:p-5">
         <div className="flex flex-col-reverse md:flex-row bg-white w-full h-full md:w-[900px] md:h-[500px] rounded-2xl shadow-2xl ">
           {/* Main Section */}
           <div className="flex-1 flex flex-col">
-            {/* Introducation Title */}
             <p className="mt-5 md:mt-10 mb-3 text-2xl font-bold text-center">
-              {" "}
               Sign in
             </p>
             {/* Form */}
@@ -94,11 +94,17 @@ export default function Login() {
                 placeholder="Enter Your Password"
                 onChange={handleChange}
               />
+
+              {error && (
+                <p className="text-red-500 font-semibold mt-3">{error}</p>
+              )}
+
               <Button variant="primary" className="mt-10 w-full">
                 Sign in
               </Button>
             </form>
           </div>
+
           {/* Image Section */}
           <div className="md:flex-1 flex justify-center mb-2 md:mb-0 mt-10 md:mt-0">
             <img
@@ -110,7 +116,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Loading Spinner When Communicating With Backend */}
       {isLoading && <Loading />}
     </>
   );

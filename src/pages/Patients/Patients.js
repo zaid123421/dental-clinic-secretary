@@ -67,7 +67,6 @@
     // Get The Token That Stored In The Browser
     const token = cookie.get("token");
 
-
     useEffect(() => {
       axios
         .get(`${BaseUrl}/patient?page=${pagination.current_page}`, {
