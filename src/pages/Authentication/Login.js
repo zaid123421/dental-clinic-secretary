@@ -22,7 +22,7 @@ export default function Login() {
     phone_number: "",
     password: "",
   });
-  const [error, setError] = useState(""); // <-- لإظهار رسالة الخطأ
+  const [error, setError] = useState("");
 
   // useNavigate
   const nav = useNavigate();
@@ -33,7 +33,7 @@ export default function Login() {
   // Functions
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError(""); // يمسح رسالة الخطأ عند التعديل
+    setError("");
   };
 
   async function Submit() {
@@ -86,6 +86,7 @@ export default function Login() {
                 placeholder="Enter Phone Number"
                 onChange={handleChange}
               />
+
               <FormInput
                 className="w-full bg-[#089bab1c]"
                 name="password"
@@ -96,10 +97,10 @@ export default function Login() {
               />
 
               {error && (
-                <p className="text-red-500 font-semibold mt-3">{error}</p>
+                <p className="text-red-500 font-semibold mt-2 absolute">{error}</p>
               )}
-
-              <Button variant="primary" className="mt-10 w-full">
+            
+              <Button variant="primary" className="mt-12 w-full">
                 Sign in
               </Button>
             </form>
