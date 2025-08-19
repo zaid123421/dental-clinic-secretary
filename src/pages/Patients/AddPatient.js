@@ -18,6 +18,7 @@ import { BaseUrl } from "../../config";
 import Cookies from "universal-cookie";
 // react router dom tool
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
 
 export default function AddPatient() {
   // States
@@ -45,6 +46,7 @@ export default function AddPatient() {
       intake_medications: [],
       dieases: [],
     });
+    const [errors, setErrors] = useState({});
 
   // useNavigate
   const nav = useNavigate();
@@ -93,6 +95,13 @@ export default function AddPatient() {
         });
     }, []);
 
+  const isFormValid =
+    patient.name &&
+    patient.phone_number?.length === 10 &&
+    // patient.phone_number.startsWith("09") && 
+    patient.birthdate &&
+    patient.gender;
+
   // Functions
     // Add Employee Function
     async function AddPatient() {
@@ -133,6 +142,15 @@ export default function AddPatient() {
         }, 3000);
       } catch (err) {
         console.log(err);
+        console.log(err.response.data.message.phone_number);
+          if (err.response?.data?.message?.phone_number) {
+              setErrors((prev) => ({
+                ...prev,
+                phone_number: err.response.data.message.phone_number[0],
+              }));
+            } else {
+              setErrors({});
+            }
         setModal({
           isOpen: true,
           message: "Something Went Wrong !",
@@ -164,7 +182,7 @@ export default function AddPatient() {
 
             {/* First Informations Section */}
             <div className="flex flex-col w-full lg:w-1/3">
-              <label className="mb-2">Name</label>
+              <label className="mb-2">Name <span className="ml-1 text-sm text-red-500">required</span></label>
               <input
                 value={patient.name}
                 onChange={(e) =>
@@ -174,7 +192,9 @@ export default function AddPatient() {
                 className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-5"
               />
 
-              <label className="mb-2">Phone Number</label>
+              <label className="mb-2">
+                Phone Number <span className="ml-1 text-sm text-red-500">required</span>
+              </label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -183,16 +203,17 @@ export default function AddPatient() {
                 value={patient.phone_number || ""}
                 onChange={(e) => {
                   const onlyNums = e.target.value.replace(/\D/g, "");
-                  if (onlyNums.startsWith("09") || onlyNums === "") {
-                    const trimmed = onlyNums.slice(0, 10);
-                    setPatient((prev) => ({ ...prev, phone_number: trimmed }));
-                  }
+                  setPatient((prev) => ({ ...prev, phone_number: onlyNums }));
+                  setErrors((prev) => ({ ...prev, phone_number: null }));
                 }}
                 placeholder="Phone Number"
-                className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-5"
+                className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-1"
               />
+              {errors.phone_number && (
+                <p className="text-red-500 text-sm mb-4">{errors.phone_number}</p>
+              )}
 
-              <label className="mb-2">Birthdate</label>
+              <label className="mb-2">Birthdate <span className="ml-1 text-sm text-red-500">required</span></label>
               <input
                 type="date"
                 value={patient.birthdate || ""}
@@ -205,7 +226,7 @@ export default function AddPatient() {
                 className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-5"
               />
 
-              <label className="mb-2">Gender</label>
+              <label className="mb-2">Gender <span className="ml-1 text-sm text-red-500">required</span></label>
               <select
                 value={patient.gender || ""}
                 onChange={(e) =>
@@ -273,60 +294,55 @@ export default function AddPatient() {
             {/* Third Informations Section */}
             <div className="flex flex-col w-full lg:w-1/3">
 
-              <label className="mb-2">Intake Medications</label>
-                {intake?.map((med) => (
-                  <label key={med.id} className="flex gap-2 items-center text-sm">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 accent-blue-500 cursor-pointer"
-                      checked={patient.intake_medications?.includes(med.id)}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setPatient((prev) => ({
-                          ...prev,
-                          intake_medications: checked
-                            ? [...prev.intake_medications, med.id]
-                            : prev.intake_medications.filter((r) => r !== med.id),
-                        }));
-                      }}
-                    />
-                    {med.name}
-                  </label>
-                ))}
+            <label className="mb-2">Intake Medications</label>
+            <Select
+              isMulti
+              options={intake?.map((med) => ({ value: med.id, label: med.name }))}
+              value={patient.intake_medications.map((id) => {
+                const med = intake.find((m) => m.id === id);
+                return { value: id, label: med?.name };
+              })}
+              onChange={(selectedOptions) =>
+                setPatient((prev) => ({
+                  ...prev,
+                  intake_medications: selectedOptions.map((opt) => opt.value),
+                }))
+              }
+              className="mb-5"
+            />
 
-                <label className="mb-2">Dieases</label>
-                <div className="flex flex-col gap-1 px-4 mb-5 max-w-full">
-                {dieases?.map((diease) => (
-                  <label key={diease.id} className="flex gap-2 items-center text-sm">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 accent-blue-500 cursor-pointer"
-                      checked={patient.dieases?.includes(diease.id)}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setPatient((prev) => ({
-                          ...prev,
-                          dieases: checked
-                            ? [...prev.dieases, diease.id]
-                            : prev.dieases.filter((r) => r !== diease.id),
-                        }));
-                      }}
-                    />
-                    {diease.name}
-                  </label>
-                ))}
-              </div>
+            <label className="mb-2">Diseases</label>
+            <Select
+              isMulti
+              options={dieases?.map((d) => ({ value: d.id, label: d.name }))}
+              value={patient.dieases.map((id) => {
+                const disease = dieases.find((d) => d.id === id);
+                return { value: id, label: disease?.name };
+              })}
+              onChange={(selectedOptions) =>
+                setPatient((prev) => ({
+                  ...prev,
+                  dieases: selectedOptions.map((opt) => opt.value),
+                }))
+              }
+              className="mb-5"
+            />
             </div>
 
           </div>
-          {/* Add Employee Button */}
+          {/* Add Patient Button */}
           <div className="flex justify-center w-full">
-            <button
-              onClick={() => AddPatient()}
-              className="px-3 bg-[#089bab] text-white p-1 rounded-xl hover:bg-transparent hover:text-black duration-300 ml-7 border-2 border-[#089bab]"
-            >
-              Add Patient
-            </button>
+          <button
+            onClick={() => AddPatient()}
+            disabled={!isFormValid}
+            className={`px-3 p-1 rounded-xl ml-7 border-2 duration-300 
+              ${isFormValid 
+                ? "bg-[#089bab] text-white hover:bg-transparent hover:text-black border-[#089bab]" 
+                : "bg-gray-400 text-white cursor-not-allowed border-gray-400"
+              }`}
+          >
+            Add Patient
+          </button>
           </div>
         </div>
       </div>

@@ -88,7 +88,14 @@
 
     // useNavigate
     const nav = useNavigate();
+// State للبحث
+const [search, setSearch] = useState("");
 
+// فلترة المرضى حسب الاسم أو رقم الهاتف
+const filteredPatients = patients?.filter((patient) =>
+  patient.name.toLowerCase().includes(search.toLowerCase()) ||
+  patient.phone_number.toString().includes(search)
+);
     // Cookies
     const cookie = new Cookies();
     // Get The Token That Stored In The Browser
@@ -140,16 +147,16 @@
       }
     }, [modal.isOpen]);
 
-  useEffect(() => {
-    if (confirmDeleteEmployee || confirmDeletePatient || banBox) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [confirmDeleteEmployee, confirmDeletePatient, banBox]);
+    useEffect(() => {
+      if (confirmDeleteEmployee || confirmDeletePatient || banBox) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "auto";
+      }
+      return () => {
+        document.body.style.overflow = "auto";
+      };
+    }, [confirmDeleteEmployee, confirmDeletePatient, banBox]);
 
   async function DeleteEmployee() {
     setIsLoading(true);
@@ -205,59 +212,74 @@
     }
   }
 
-    function hanldeIncremetPage() {
-      if(pagination.current_page < pagination.last_page) {
-        setPagination((prev) => ({
-          ...prev,
-          current_page: pagination.current_page + 1
-        }))
-        setRefreshFlag((prev) => prev + 1)
-      }
+  function hanldeIncremetPage() {
+    if(pagination.current_page < pagination.last_page) {
+      setPagination((prev) => ({
+        ...prev,
+        current_page: pagination.current_page + 1
+      }))
+      setRefreshFlag((prev) => prev + 1)
     }
+  }
 
-    function handleDecrementPage() {
-      if(pagination.current_page > 1) {
-        setPagination((prev) => ({
-          ...prev,
-          current_page: pagination.current_page - 1
-        }))
-        setRefreshFlag((prev) => prev + 1)
-      }
+  function handleDecrementPage() {
+    if(pagination.current_page > 1) {
+      setPagination((prev) => ({
+        ...prev,
+        current_page: pagination.current_page - 1
+      }))
+      setRefreshFlag((prev) => prev + 1)
     }
+  }
 
-    const showPatients = patients?.map((patient, index) => (
-      <tr onClick={() => nav(`/show-patient?patientId=${patient.id}`)} className={`p-3 ${index !== patients.length - 1 ? "border-b-[1px] border-b-gray-300" : ""} text-center font-semibold bg-white hover:text-white hover:bg-[#089bab] cursor-pointer`}>
-        <td className={`p-3 ${index === patients.length - 1 ? "rounded-bl-2xl" : ""}`}>
-          {patient.name}
-        </td>
-        <td className="p-3">{patient.phone_number}</td>
-        <td className={`${patient.balance > 0 ? "text-green-500" : patient.balance < 0 ? "text-red-500" : "text-gray-500"}`}>{patient.balance.toLocaleString()}</td>
-        <td className="p-3">
-          {patient.is_banned ? (
-            <FaBan
-              className="text-2xl text-red-500 cursor-pointer justify-self-center"
-            />
-          ) : (
-            <GoDash
-              className="text-2xl text-green-500 cursor-pointer justify-self-center"
-            />
-          )}
-        </td>
-        <td className={`p-3 ${index === patients.length - 1 ? "rounded-br-2xl" : ""}`}>
-          <MdDelete onClick={(e) => {
-              e.stopPropagation();
-              setPatient((prev) => ({
-                ...prev,
-                id: patient.id,
-                name: patient.name,
-              }));
-              setConfirmDeletePatient(true);
-            }}
-            className="text-2xl text-red-500 hover:text-red-700 duration-300 cursor-pointer justify-self-center"
-          />
-        </td>
-      </tr>
-    ));
+  const showPatients = filteredPatients?.map((patient, index) => (
+    <tr
+      key={patient.id}
+      onClick={() => nav(`/show-patient?patientId=${patient.id}`)}
+      className={`p-3 ${
+        index !== filteredPatients.length - 1
+          ? "border-b-[1px] border-b-gray-300"
+          : ""
+      } text-center font-semibold bg-white hover:text-white hover:bg-[#089bab] cursor-pointer`}
+    >
+      <td className={`p-3 ${index === filteredPatients.length - 1 ? "rounded-bl-2xl" : ""}`}>
+        {patient.name}
+      </td>
+      <td className="p-3">{patient.phone_number}</td>
+      <td
+        className={`${
+          patient.balance > 0
+            ? "text-green-500"
+            : patient.balance < 0
+            ? "text-red-500"
+            : "text-gray-500"
+        }`}
+      >
+        {patient.balance.toLocaleString()}
+      </td>
+      <td className="p-3">
+        {patient.is_banned ? (
+          <FaBan className="text-2xl text-red-500 cursor-pointer justify-self-center" />
+        ) : (
+          <GoDash className="text-2xl text-green-500 cursor-pointer justify-self-center" />
+        )}
+      </td>
+      <td className={`p-3 ${index === filteredPatients.length - 1 ? "rounded-br-2xl" : ""}`}>
+        <MdDelete
+          onClick={(e) => {
+            e.stopPropagation();
+            setPatient((prev) => ({
+              ...prev,
+              id: patient.id,
+              name: patient.name,
+            }));
+            setConfirmDeletePatient(true);
+          }}
+          className="text-2xl text-red-500 hover:text-red-700 duration-300 cursor-pointer justify-self-center"
+        />
+      </td>
+    </tr>
+  ));
 
     return (
       <>
@@ -280,12 +302,14 @@
               icon={<FiPlus className="text-2xl" />}
             />
             <FormInput
-              icon={<IoIosSearch className="text-black text-lg" />}
-              placeholder="Search"
-              className="w-full md:w-[250px] bg-white border-[#089bab] placeholder-black shadow-lg"
+            icon={<IoIosSearch className="text-black text-lg" />}
+            placeholder="Search by name or phone"
+            className="w-full md:w-[250px] bg-white border-[#089bab] placeholder-black shadow-lg"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-  
+
           <div className="overflow-x-auto shadow-xl rounded-2xl mt-5">
             <table className="w-full bg-transparent">
               <thead className="font-bold bg-gray-300">
@@ -296,29 +320,63 @@
                 <th className="py-3 rounded-tr-2xl ">Delete</th>
               </thead>
               <tbody className="rounded-2xl">
-                {showPatients}
+                {!patients || patients.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="text-center text-gray-500 bg-white  font-semibold p-5">
+                      No Patients Yet
+                    </td>
+                  </tr>
+                ) : filteredPatients.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="text-center text-gray-500 bg-white font-semibold p-5">
+                      No Results Found
+                    </td>
+                  </tr>
+                ) : (
+                  showPatients
+                )}
               </tbody>
             </table>
           </div>
 
           {/* Pagination Section */}
-          <div className="flex justify-center items-center w-full mt-5 text-xl">
-            {/* Increment Page Button */}
-            <button
-            onClick={() => handleDecrementPage()}
-            className="bg-[#089bab] border-2 border-[#089bab] hover:bg-transparent hover:text-black duration-300 text-white w-[25px] h-[25px] rounded-full flex justify-center items-center">
-            <GoDash className="text-sm" />
-            </button>
-            <span className="text-2xl font-semibold mx-5">
-              {pagination.current_page}
-            </span>
-            {/* Decrement Page Button */}
-            <button
-            onClick={() => hanldeIncremetPage()}
-            className="bg-[#089bab] border-2 border-[#089bab] hover:bg-transparent hover:text-black duration-300 text-white w-[25px] h-[25px] rounded-full flex justify-center items-center">
-              <FiPlus className="text-sm" />
-            </button>
-          </div>
+          {!patients || patients.length === 0 ? (
+            <p className="text-center text-gray-500 font-semibold mt-5">
+              No Patients Yet
+            </p>
+          ) : (
+            <div className="flex justify-center items-center w-full mt-5 text-xl">
+              {/* Previous Page Button */}
+              <button
+                onClick={handleDecrementPage}
+                disabled={pagination.current_page === 1 || pagination.last_page === 1}
+                className={`w-[25px] h-[25px] rounded-full flex justify-center items-center border-2 duration-300 
+                  ${pagination.current_page === 1 || pagination.last_page === 1
+                    ? "bg-gray-400 border-gray-400 text-white cursor-not-allowed"
+                    : "bg-[#089bab] border-[#089bab] text-white hover:bg-transparent hover:text-black"
+                  }`}
+              >
+                <GoDash className="text-sm" />
+              </button>
+
+              <span className="text-2xl font-semibold mx-5">
+                {pagination.current_page}
+              </span>
+
+              {/* Next Page Button */}
+              <button
+                onClick={hanldeIncremetPage}
+                disabled={pagination.current_page === pagination.last_page || pagination.last_page === 1}
+                className={`w-[25px] h-[25px] rounded-full flex justify-center items-center border-2 duration-300 
+                  ${pagination.current_page === pagination.last_page || pagination.last_page === 1
+                    ? "bg-gray-400 border-gray-400 text-white cursor-not-allowed"
+                    : "bg-[#089bab] border-[#089bab] text-white hover:bg-transparent hover:text-black"
+                  }`}
+              >
+                <FiPlus className="text-sm" />
+              </button>
+            </div>
+          )}
 
         </div>
 
