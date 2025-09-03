@@ -18,11 +18,11 @@ import Cookies from "universal-cookie";
 export default function Login() {
   // States
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     phone_number: "",
     password: "",
   });
-  const [error, setError] = useState("");
 
   // useNavigate
   const nav = useNavigate();
@@ -47,7 +47,7 @@ export default function Login() {
 
       cookie.set("token", res.data.data.token, { path: "/" });
       cookie.set("username", res.data.data.name, { path: "/" });
-      nav("/patients");
+      nav("/queue");
     } catch (err) {
       if (err.response && err.response.status === 401) {
         setError("Invalid phone number or password");
@@ -61,6 +61,7 @@ export default function Login() {
 
   return (
     <>
+
       {/* The Main Container */}
       <div className="flex items-center justify-center h-screen bg-[#089bab1c] md:p-5">
         <div className="flex flex-col-reverse md:flex-row bg-white w-full h-full md:w-[900px] md:h-[500px] rounded-2xl shadow-2xl ">
@@ -117,7 +118,9 @@ export default function Login() {
         </div>
       </div>
 
+      {/* Loading Spinner When Communicating With Backend */}
       {isLoading && <Loading />}
+
     </>
   );
 }

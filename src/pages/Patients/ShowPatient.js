@@ -216,117 +216,120 @@ export default function ShowEmployee() {
           />
         </div>
 
-          <div className="font-semibold text-xl lg:p-5 flex flex-col lg:flex-row mt-5 lg:mt-0">
+        <div className="font-semibold text-xl lg:p-5 flex flex-col lg:flex-row mt-5 lg:mt-0">
+          <div>
             <div>
-              <div>
-                <label className="mr-5 font-bold">Name:</label>
-                <label>{patient?.name}</label>
-              </div>
-              <div className="mt-5">
-                <label className="mr-5 font-bold">Phone:</label>
-                <label>{patient?.phone_number}</label>
-              </div>
-              <div className="mt-5">
-                <label className="mr-5 font-bold">Address:</label>
-                <label>{patient?.address || "Qudsaya Suburb, Damascus"}</label>
-              </div>
-              <div className="mt-5">
-                <label className="mr-5 font-bold">Gender:</label>
-                <label>{patient?.gender}</label>
-              </div>
-              <div className="mt-5">
-                <label className="mr-5 font-bold">Birthdate:</label>
-                <label>{patient?.birthdate} ({patient?.age})</label>
-              </div>
-              <div className="mt-5">
-                <label className="mr-5 font-bold">Ban:</label>
-                <label>
-                  {patient?.is_banned === true ? (
-                    patient.ban_expired_at === null ? (
-                      <span className="text-red-600">Banned Forever</span>
-                    ) : (
-                      <>
-                        <span>
-                          Ban Expired At <span className="text-orange-500">{patient?.ban_expired_at?.slice(0, 10)}</span>
-                        </span>{" "}
-                        <span className="text-blue-600">
-                          {patient?.ban_expired_at?.slice(11, 19)}
-                        </span>
-                      </>
-                    )
+              <label className="mr-5 font-bold">Name:</label>
+              <label>{patient?.name}</label>
+            </div>
+            <div className="mt-5">
+              <label className="mr-5 font-bold">Phone:</label>
+              <label>{patient?.phone_number}</label>
+            </div>
+            <div className="mt-5">
+              <label className="mr-5 font-bold">Address:</label>
+              <label>{patient?.address || "Qudsaya Suburb, Damascus"}</label>
+            </div>
+            <div className="mt-5">
+              <label className="mr-5 font-bold">Gender:</label>
+              <label>{patient?.gender}</label>
+            </div>
+            <div className="mt-5">
+              <label className="mr-5 font-bold">Birthdate:</label>
+              <label>{patient?.birthdate} ({patient?.age})</label>
+            </div>
+            <div className="mt-5">
+              <label className="mr-5 font-bold">Ban:</label>
+              <label>
+                {patient?.is_banned === true ? (
+                  patient.ban_expired_at === null ? (
+                    <span className="text-red-600">Banned Forever</span>
                   ) : (
-                    <span className="text-green-600">Not Banned</span>
-                  )}
-                </label>
-              </div>
-              <div className="mt-5">
-                <label className="mr-5 font-bold">Job:</label>
-                <label >{patient?.job}</label>
-              </div>
-              <div className="mt-5">
-                <label className="mr-5 font-bold">Marital Status:</label>
-                <label >{patient?.marital_status || "Single"}</label>
-              </div>
+                    <>
+                      <span>
+                        Ban Expired At <span className="text-orange-500">{patient?.ban_expired_at?.slice(0, 10)}</span>
+                      </span>{" "}
+                      <span className="text-blue-600">
+                        {patient?.ban_expired_at?.slice(11, 19)}
+                      </span>
+                    </>
+                  )
+                ) : (
+                  <span className="text-green-600">Not Banned</span>
+                )}
+              </label>
             </div>
-            <div className="mt-5 lg:mt-0 lg:ml-[125px]">
-              <div className="flex flex-col">
-              <label className="font-bold">{patient?.diseases.length === 0 ? "No Diseases" : "Diseases"}</label>
-                {patient?.diseases?.map((diease) => (
-                <li className="ml-2">{diease.name}</li>
-              ))}
-              <label className="font-bold mt-5">{patient?.intake_medications.length === 0 ? "No Intake Medications" : "Intake Medications"}</label>
-                {patient?.intake_medications?.map((intake) => (
-                <li className="ml-2">{intake.name}</li>
-              ))}
-              </div>
+            <div className="mt-5">
+              <label className="mr-5 font-bold">Job:</label>
+              <label >{patient?.job || "No Information"}</label>
             </div>
-            <div className="bg-white shadow-lg rounded-xl p-5 mt-5 lg:mt-0 lg:ml-7 flex-1">
-              <span className="font-bold mb-5">Transcations</span>
-              <div>
-                <p>Balance: <span className={`${balance.current > 0 ? "text-green-600" : balance.current < 0 ? "text-red-500" : "text-gray-500"}`}>{balance.current?.toLocaleString()}</span></p>
-              </div>
-              {showTransactions}
-              {/* Pagination Section */}
-              {transactions?.length === 0 ? (
-                <p className="text-center text-gray-500 font-semibold mt-5">
-                  No Transactions Yet
-                </p>
-              ) : (
-                <div className="flex justify-center items-center w-full mt-5 text-xl">
-                  {/* Previous Page Button */}
-                  <button
-                    onClick={handleDecrementPage}
-                    disabled={pagination.current_page === 1 || pagination.last_page === 1}
-                    className={`w-[25px] h-[25px] rounded-full flex justify-center items-center border-2 duration-300 
-                      ${pagination.current_page === 1 || pagination.last_page === 1
-                        ? "bg-gray-400 border-gray-400 text-white cursor-not-allowed"
-                        : "bg-[#089bab] border-[#089bab] text-white hover:bg-transparent hover:text-black"
-                      }`}
-                  >
-                    <GoDash className="text-sm" />
-                  </button>
-
-                  <span className="text-2xl font-semibold mx-5">
-                    {pagination.current_page}
-                  </span>
-
-                  {/* Next Page Button */}
-                  <button
-                    onClick={hanldeIncremetPage}
-                    disabled={pagination.current_page === pagination.last_page || pagination.last_page === 1}
-                    className={`w-[25px] h-[25px] rounded-full flex justify-center items-center border-2 duration-300 
-                      ${pagination.current_page === pagination.last_page || pagination.last_page === 1
-                        ? "bg-gray-400 border-gray-400 text-white cursor-not-allowed"
-                        : "bg-[#089bab] border-[#089bab] text-white hover:bg-transparent hover:text-black"
-                      }`}
-                  >
-                    <FiPlus className="text-sm" />
-                  </button>
-                </div>
-              )}
-
+            <div className="mt-5">
+              <label className="mr-5 font-bold">Marital Status:</label>
+              <label >{patient?.marital_status || "No Information"}</label>
+            </div>
+            <div className="mt-5">
+              <button onClick={() => nav(`/show-patient-appointments?patientId=${patientId}`)} className="bg-orange-500 px-4 py-2 rounded-2xl text-base hover:bg-orange-600 duration-300 text-white">Show Patient Appointments</button>
             </div>
           </div>
+          <div className="mt-5 lg:mt-0 lg:ml-[125px]">
+            <div className="flex flex-col">
+            <label className="font-bold">{patient?.diseases.length === 0 ? "No Diseases" : "Diseases"}</label>
+              {patient?.diseases?.map((diease) => (
+              <li className="ml-2">{diease.name}</li>
+            ))}
+            <label className="font-bold mt-5">{patient?.intake_medications.length === 0 ? "No Intake Medications" : "Intake Medications"}</label>
+              {patient?.intake_medications?.map((intake) => (
+              <li className="ml-2">{intake.name}</li>
+            ))}
+            </div>
+          </div>
+          <div className="bg-white shadow-lg rounded-xl p-5 mt-5 lg:mt-0 lg:ml-7 flex-1">
+            <span className="font-bold mb-5">Transcations</span>
+            <div>
+              <p>Balance: <span className={`${balance.current > 0 ? "text-green-600" : balance.current < 0 ? "text-red-500" : "text-gray-500"}`}>{balance.current?.toLocaleString()}</span></p>
+            </div>
+            {showTransactions}
+            {/* Pagination Section */}
+            {transactions?.length === 0 ? (
+              <p className="text-center text-gray-500 font-semibold mt-5">
+                No Transactions Yet
+              </p>
+            ) : (
+              <div className="flex justify-center items-center w-full mt-5 text-xl">
+                {/* Previous Page Button */}
+                <button
+                  onClick={handleDecrementPage}
+                  disabled={pagination.current_page === 1 || pagination.last_page === 1}
+                  className={`w-[25px] h-[25px] rounded-full flex justify-center items-center border-2 duration-300 
+                    ${pagination.current_page === 1 || pagination.last_page === 1
+                      ? "bg-gray-400 border-gray-400 text-white cursor-not-allowed"
+                      : "bg-[#089bab] border-[#089bab] text-white hover:bg-transparent hover:text-black"
+                    }`}
+                >
+                  <GoDash className="text-sm" />
+                </button>
+
+                <span className="text-2xl font-semibold mx-5">
+                  {pagination.current_page}
+                </span>
+
+                {/* Next Page Button */}
+                <button
+                  onClick={hanldeIncremetPage}
+                  disabled={pagination.current_page === pagination.last_page || pagination.last_page === 1}
+                  className={`w-[25px] h-[25px] rounded-full flex justify-center items-center border-2 duration-300 
+                    ${pagination.current_page === pagination.last_page || pagination.last_page === 1
+                      ? "bg-gray-400 border-gray-400 text-white cursor-not-allowed"
+                      : "bg-[#089bab] border-[#089bab] text-white hover:bg-transparent hover:text-black"
+                    }`}
+                >
+                  <FiPlus className="text-sm" />
+                </button>
+              </div>
+            )}
+
+          </div>
+        </div>
       </div>
 
       {/* Add Transaction Box */}

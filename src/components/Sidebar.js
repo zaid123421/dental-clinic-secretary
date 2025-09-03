@@ -8,6 +8,7 @@ import logout from "../assets/logout.jpg";
 import { FaArrowRight, FaUsers } from "react-icons/fa";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import { TbWorld } from "react-icons/tb";
+import { MdDateRange } from "react-icons/md";
 // Hooks
 import { useState } from "react";
 // Cookies
@@ -19,6 +20,7 @@ import { BaseUrl } from "../config";
 // react router dom tool
 import { useNavigate } from "react-router-dom";
 import Confirm from "./Confirm";
+import { HiQueueList } from "react-icons/hi2";
 
 export default function Sidebar() {
   // States
@@ -75,6 +77,8 @@ export default function Sidebar() {
           <span className="text-xs text-gray-200">A Secreatary</span>
         </div>
         <ul>
+          <Link to="/queue" label="Queue" responsive={responsive} icon= {<HiQueueList className={`md:mr-3 ${responsive ? '' : 'mr-3'} text-lg md:text-2xl`}/>}/>
+          <Link to="/appointments" label="Appointments" responsive={responsive} icon= {<MdDateRange className={`md:mr-3 ${responsive ? '' : 'mr-3'} text-lg md:text-2xl`}/>}/>
           <Link to="/patients" label="Patients" responsive={responsive} icon= {<FaUsers className={`md:mr-3 ${responsive ? '' : 'mr-3'} text-lg md:text-2xl`}/>}/>
           <button
           className={`${responsive ? 'w-full' : 'w-[200px]'} md:w-[220px] p-2 rounded-md cursor-pointer my-2 flex items-center duration-[0.3s] hover:bg-white hover:text-[#089bab]`}
@@ -84,10 +88,6 @@ export default function Sidebar() {
             <span className={`${responsive ? "hidden" : "block"} md:block`}>Logout</span>
           </button>
         </ul>
-        <div className="hover:text-[#089bab] hover:bg-white p-2 duration-[0.3s] rounded-md cursor-pointer absolute bottom-[15px] flex items-center">
-            <TbWorld className={`md:mr-3 ${responsive ? '' : 'mr-3'} text-lg md:text-2xl`} />
-            <span className={`md:block ${responsive ? 'hidden' : 'block'}`}>Arabic</span>
-        </div>
       </div>
 
       {/* Show Logout Confirm Box */}

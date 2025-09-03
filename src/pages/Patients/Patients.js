@@ -67,26 +67,34 @@
     // Get The Token That Stored In The Browser
     const token = cookie.get("token");
 
-    useEffect(() => {
-      axios
-        .get(`${BaseUrl}/patient?page=${pagination.current_page}`, {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((data) => {
-          console.log(data);
-          setPatients(data.data.data.data);
-          setPagination({
-            current_page: data.data.data.current_page,
-            last_page: data.data.data.last_page
-          });
-        })
-        .catch((error) => {
-          console.log(error);
+  useEffect(() => {
+    const controller = new AbortController();
+
+    axios
+      .get(`${BaseUrl}/patient?page=${pagination.current_page}`, {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        signal: controller.signal,
+      })
+      .then((res) => {
+        setPatients(res.data.data.data);
+        setPagination({
+          current_page: res.data.data.current_page,
+          last_page: res.data.data.last_page,
         });
-    }, [refreshFlag]);
+      })
+      .catch((error) => {
+        if (error.name === "CanceledError") {
+          console.log("Request aborted");
+        } else {
+          console.error(error);
+        }
+      });
+
+    return () => controller.abort();
+  }, [refreshFlag, pagination.current_page, token]);
 
     useEffect(() => {
       if (confirmDeletePatient) {
@@ -157,8 +165,8 @@
 
   // Filters Patients
   const filteredPatients = patients?.filter((patient) =>
-    patient.name.toLowerCase().includes(search.toLowerCase()) ||
-    patient.phone_number.toString().includes(search)
+    patient.name.toLowerCase().startsWith(search.toLowerCase()) ||
+    patient.phone_number.toString().startsWith(search)
   );
 
   const showPatients = filteredPatients?.map((patient, index) => (
@@ -270,9 +278,7 @@
 
           {/* Pagination Section */}
           {!patients || patients.length === 0 ? (
-            <p className="text-center text-gray-500 font-semibold mt-5">
-              No Patients Yet
-            </p>
+            null
           ) : (
             <div className="flex justify-center items-center w-full mt-5 text-xl">
               {/* Previous Page Button */}
