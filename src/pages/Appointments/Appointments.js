@@ -11,7 +11,6 @@ import errorImage from "../../assets/error.gif";
 import { FiPlus } from "react-icons/fi";
 import Select from "react-select";
 import { BsThreeDots } from "react-icons/bs";
-import { MdBlock } from "react-icons/md";
 
 export default function Appointments() {
   // Modal Informations
@@ -287,12 +286,14 @@ export default function Appointments() {
       <Sidebar />
       <div className="page-content p-3 md:py-5 md:p-5 bg-[#089bab1c]">
         <Title label="Appointments" className="px-1"/>
+
         <button
           onClick={() => setAddAppointment(true)}
-          className="w-fit rounded-xl p-3 fixed bottom-[25px] right-[25px] bg-[#089bab] hover:bg-[#047986] text-white duration-300"
+          className="z-[50] w-fit rounded-xl p-3 fixed bottom-[25px] right-[25px] bg-[#089bab] hover:bg-[#047986] text-white duration-300"
         >
           <FiPlus className="text-2xl" />
         </button>
+
         <div className="flex flex-col md:flex-row gap-3 mt-5 flex-wrap">
           <div className="flex items-center">
             <label className="mb-1 text-sm font-bold text-gray-600 mr-2 w-[50px] md:w-fit">From</label>
@@ -300,7 +301,7 @@ export default function Appointments() {
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#089bab]"
+              className="cursor-pointer shadow-lg rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#089bab]"
             />
           </div>
 
@@ -310,7 +311,7 @@ export default function Appointments() {
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#089bab]"
+              className="cursor-pointer shadow-lg rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#089bab]"
             />
           </div>
 
@@ -328,7 +329,7 @@ export default function Appointments() {
             <div className="overflow-x-auto md:overflow-visible shadow-xl rounded-2xl mt-5">
               <table className="min-w-full border border-gray-200 bg-white rounded-xl shadow-sm">
                 <thead className="bg-[#089bab] text-white">
-                  <tr className="">
+                  <tr>
                     <th className="px-4 py-2 text-center rounded-tl-2xl">Patient</th>
                     <th className="px-4 py-2 text-center">Doctor</th>
                     <th className="px-4 py-2 text-center">Date</th>
@@ -345,15 +346,17 @@ export default function Appointments() {
                         ? "border-b-[1px] border-b-gray-300"
                         : ""
                     } text-center font-semibold`}>
-                      <td className={`px-4 py-2 text-center`}>{appt.patient?.name}</td>
-                      <td className="px-4 py-2 text-center">{appt.doctor?.name}</td>
-                      <td className="px-4 py-2 text-center">{appt.date}</td>
-                      <td className="px-4 py-2 text-center">{appt.start_time} - {appt.end_time}</td>
-                      <td className="px-4 py-2 text-center">{appt.duration}</td>
-                      <td className="px-4 py-2 text-center font-semibold">
+                      <td className={`px-4 py-2`}>{appt.patient?.name}</td>
+                      <td className="px-4 py-2">{appt.doctor?.name}</td>
+                      <td className="px-4 py-2">{appt.date}</td>
+                      <td className="px-4 py-2">{appt.start_time} - {appt.end_time}</td>
+                      <td className="px-4 py-2">{appt.duration}</td>
+                      <td className="px-4 py-2">
                         <span
                           className={
-                            appt.status === "Scheduled"
+                            appt.status === "Pending"
+                              ? "text-black"
+                              : appt.status === "Scheduled"
                               ? "text-yellow-500"
                               : appt.status === "Cancelled"
                               ? "text-red-600"
@@ -363,6 +366,10 @@ export default function Appointments() {
                               ? "text-gray-500"
                               : appt.status === "Completed"
                               ? "text-green-500"
+                              : appt.status === "Refused"
+                              ? "text-red-600"
+                              : appt.status === "Deleted"
+                              ? "text-red-600"
                               : "text-black"
                           }
                         >
@@ -370,8 +377,8 @@ export default function Appointments() {
                         </span>
                       </td>
                       <td className="px-4 py-2 text-center relative">
-                        {["Completed", "Cancelled", "No Show"].includes(appt.status) ? (
-                          <MdBlock className="text-red-300 text-xl mx-auto" title="Cannot change status" />
+                        {["Refused", "Deleted", "Completed", "Cancelled", "No Show"].includes(appt.status) ? (
+                          "-"
                         ) : (
                           <BsThreeDots
                             className="justify-self-center cursor-pointer"
@@ -383,63 +390,91 @@ export default function Appointments() {
                           />
                         )}
 
-                        {selectedAppointment === appt.id && (
-                          <div
-                            ref={dropdownRef}
-                            className="absolute w-44 bg-white border rounded-lg shadow-lg z-50"
-                            style={{
-                              top: index >= appointments.length - 3 ? '-120%' : '100%',
-                              right: 0,
-                            }}
-                          >
-                            <ul className="text-sm text-gray-700">
-                              {appt.status === "Scheduled" ? (
-                                <>
+                        {selectedAppointment === appt.id &&
+                          !["Refused", "Deleted", "Completed", "Cancelled", "No Show"].includes(appt.status) && (
+                            <div
+                              ref={dropdownRef}
+                              className="absolute w-44 bg-white border rounded-lg shadow-lg z-50"
+                              style={{
+                                top: index >= appointments.length - 3 ? '-120%' : '100%',
+                                right: 0,
+                              }}
+                            >
+                              <ul className="text-sm text-gray-700">
+                                {appt.status === "Pending" && (
+                                  <>
+                                    <li
+                                      onClick={() => sendStatus("Scheduled", appt.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Scheduled
+                                    </li>
+                                    <li
+                                      onClick={() => sendStatus("Refused", appt.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Refused
+                                    </li>
+                                    <li
+                                      onClick={() => sendStatus("Deleted", appt.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Deleted
+                                    </li>
+                                  </>
+                                )}
+
+                                {appt.status === "Scheduled" && (
+                                  <>
+                                    <li
+                                      onClick={() => sendStatus("Checked In", appt.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Checked In
+                                    </li>
+                                    <li
+                                      onClick={() => sendStatus("No Show", appt.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      No Show
+                                    </li>
+                                    <li
+                                      onClick={() => sendStatus("Cancelled", appt.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Cancelled
+                                    </li>
+                                  </>
+                                )}
+
+                                {appt.status === "Checked In" && (
+                                  <>
+                                    <li
+                                      onClick={() => sendStatus("In Progress", appt.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      In Progress
+                                    </li>
+                                    <li
+                                      onClick={() => sendStatus("Cancelled", appt.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Cancelled
+                                    </li>
+                                  </>
+                                )}
+
+                                {appt.status === "In Progress" && (
                                   <li
-                                    onClick={() => sendStatus("Checked In", appt.id)}
+                                    onClick={() => sendStatus("Completed", appt.id)}
                                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                                   >
-                                    Checked In
+                                    Completed
                                   </li>
-                                  <li
-                                    onClick={() => sendStatus("No Show", appt.id)}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                  >
-                                    No Show
-                                  </li>
-                                  <li
-                                    onClick={() => sendStatus("Cancelled", appt.id)}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                  >
-                                    Cancelled
-                                  </li>
-                                </>
-                              ) : appt.status === "Checked In" ? (
-                                <>
-                                  <li
-                                    onClick={() => sendStatus("In Progress", appt.id)}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                  >
-                                    In Progress
-                                  </li>
-                                  <li
-                                    onClick={() => sendStatus("Cancelled", appt.id)}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                  >
-                                    Cancelled
-                                  </li>
-                                </>
-                              ) : appt.status === "In Progress" ? (
-                                <li
-                                  onClick={() => sendStatus("Completed", appt.id)}
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                >
-                                  Completed
-                                </li>
-                              ) : null}
-                            </ul>
-                          </div>
-                        )}
+                                )}
+                              </ul>
+                            </div>
+                          )}
                       </td>
                     </tr>
                   ))}
@@ -450,6 +485,7 @@ export default function Appointments() {
             <p className="text-gray-500 absolute left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] text-center">No appointments found.</p>
           )}
         </div>
+
       </div>
 
       {/* Add Appointment Box */}

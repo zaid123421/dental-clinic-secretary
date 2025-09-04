@@ -203,7 +203,7 @@ export default function ShowEmployee() {
         <div className="mt-2">
           <Button
           onClick={() => setAddTransaction(true)}
-          className="hidden md:flex"
+          className="hidden md:flex max-w-[200px] ml-4"
           variant="primary"
           icon={<FiPlus className="mr-3 text-2xl" />}
           children="Add Transaction"
@@ -268,7 +268,7 @@ export default function ShowEmployee() {
               <label >{patient?.marital_status || "No Information"}</label>
             </div>
             <div className="mt-5">
-              <button onClick={() => nav(`/show-patient-appointments?patientId=${patientId}`)} className="bg-orange-500 px-4 py-2 rounded-2xl text-base hover:bg-orange-600 duration-300 text-white">Show Patient Appointments</button>
+              <button onClick={() => nav(`/show-patient-appointments?patientId=${patientId}`)} className="bg-orange-500 px-4 py-2 rounded-xl text-base hover:bg-orange-600 duration-300 text-white">Show Patient Appointments</button>
             </div>
           </div>
           <div className="mt-5 lg:mt-0 lg:ml-[125px]">

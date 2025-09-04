@@ -28,6 +28,7 @@ export default function Queue() {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   const [addAppointment, setAddAppointment] = useState(false);
+  const [refreshFlag, setRefreshFlag] = useState(false);
 
   const dropdownRef = useRef(null);
 
@@ -91,30 +92,46 @@ export default function Queue() {
     fetchDoctors();
   }, []);
 
-  // Pusher Setup
+  useEffect(() => {
+    const fetchQueue = async () => {
+      try {
+        const response = await axios.get(`${BaseUrl}/queue-turns`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.data.status === 1) {
+          setQueue(response.data.data);
+        } else {
+          setModal({
+            isOpen: true,
+            message: response.data.message || "Failed to fetch queue data",
+            image: errorImage,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching queue:", error);
+        setModal({
+          isOpen: true,
+          message: "Something went wrong while fetching queue!",
+          image: errorImage,
+        });
+      }
+    };
+
+    fetchQueue();
+  }, [token, refreshFlag]);
+
   useEffect(() => {
     const pusher = new Pusher("461f10be7b84c1ef6776", {
       cluster: "eu",
-      authEndpoint: `${BaseUrl}/broadcasting/auth`,
-      auth: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
+      forceTLS: true,
     });
 
     const channel = pusher.subscribe("queue-channel");
 
-    channel.bind("queue-turns", (data) => {
-      console.log("Received queue-turns:", data);
-      if (data?.status === 1) {
-        setQueue(data.data);
-      } else {
-        setModal({
-          isOpen: true,
-          message: data.message || "Failed to load queue",
-        });
-      }
+    channel.bind("queue-turn-added", (data) => {
+      setQueue((prev) => [data, ...prev]);
+      console.log("qweqweqweqwewqe");
     });
 
     return () => {
@@ -122,7 +139,7 @@ export default function Queue() {
       channel.unsubscribe();
       pusher.disconnect();
     };
-  }, [token]);
+  }, []);
 
   async function sendStatus(status, turnId) {
     setIsLoading(true);
@@ -140,6 +157,7 @@ export default function Queue() {
         }
       );
       setSelectedAppointment(null);
+      setRefreshFlag((prev) => prev + 1);
     } catch (err) {
       console.error(err);
       setModal({
@@ -226,6 +244,7 @@ export default function Queue() {
 
         <div className="overflow-x-auto md:overflow-visible shadow-xl rounded-2xl mt-5">
           <table className="min-w-full border border-gray-200 bg-white rounded-xl shadow-sm">
+            
             <thead className="bg-[#089bab] text-white">
               <tr>
                 <th className="px-4 py-2 text-center rounded-tl-2xl">Patient</th>
@@ -236,94 +255,142 @@ export default function Queue() {
                 <th className="px-4 py-2 text-center rounded-tr-2xl">Edit Status</th>
               </tr>
             </thead>
+
             <tbody>
               {queue.length > 0 ? (
                 queue.map((item, index) => (
-                  <tr key={item.id} className="border-b hover:bg-gray-50 text-center">
+                  <tr key={item.id} className="border-b hover:bg-gray-50 text-center font-semibold">
                     <td className="px-4 py-2">{item.patient?.name || "-"}</td>
                     <td className="px-4 py-2">{item.doctor?.name || "-"}</td>
-                    <td className="px-4 py-2">{item.arrival_time}</td>
-                    <td className="px-4 py-2">{item.appointment_time}</td>
+                    <td className="px-4 py-2">{item.arrival_time || "-"}</td>
+                    <td className="px-4 py-2">{item.appointment_time || "-"}</td>
                     <td className="px-4 py-2">
                       <span
                         className={
                           item.status === "Cancelled"
-                          ? "text-red-600"
-                          : item.status === "In Progress"
-                          ? "text-blue-500"
-                          : item.status === "Checked In"
-                          ? "text-gray-500"
-                          : item.status === "Completed"
-                          ? "text-green-500"
-                          : "text-black"
+                            ? "text-red-600"
+                            : item.status === "In Progress"
+                            ? "text-blue-500"
+                            : item.status === "Checked In"
+                            ? "text-gray-500"
+                            : item.status === "Completed"
+                            ? "text-green-500"
+                            : "text-black"
                         }>
                         {item.status}
                       </span>
                     </td>
                     <td className="px-4 py-2 text-center relative">
-                      {["Completed", "Cancelled"].includes(item.status) ? (
-                        <MdBlock className="text-red-300 text-xl mx-auto" title="Cannot change status" />
-                      ) : (
-                        <BsThreeDots
-                          className="justify-self-center cursor-pointer"
-                          onClick={() =>
-                            setSelectedAppointment(
-                              selectedAppointment === item.id ? null : item.id
-                            )
-                          }
-                        />
-                      )}
+                        {["Refused", "Deleted", "Completed", "Cancelled", "No Show"].includes(item.status) ? (
+                          "-"
+                        ) : (
+                          <BsThreeDots
+                            className="justify-self-center cursor-pointer"
+                            onClick={() =>
+                              setSelectedAppointment(
+                                selectedAppointment === item.id ? null : item.id
+                              )
+                            }
+                          />
+                        )}
 
-                      {selectedAppointment === item.id && (
-                        <div
-                          ref={dropdownRef}
-                          className="absolute w-44 bg-white border rounded-lg shadow-lg z-50"
-                          style={{
-                            top: index >= queue.length - 3 ? '-120%' : '100%',
-                            right: 0,
-                          }}
-                        >
-                          <ul className="text-sm text-gray-700">
-                            {item.status === "Checked In" ? (
-                              <>
-                                <li
-                                  onClick={() => sendStatus("In Progress", item.id)}
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                >
-                                  In Progress
-                                </li>
-                                <li
-                                  onClick={() => sendStatus("Cancelled", item.id)}
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                >
-                                  Cancelled
-                                </li>
-                              </>
-                            ) : item.status === "In Progress" ? (
-                              <li
-                                onClick={() => sendStatus("Completed", item.id)}
-                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                              >
-                                Completed
-                              </li>
-                            ) : null}
-                          </ul>
-                        </div>
-                      )}
+                        {selectedAppointment === item.id &&
+                          !["Refused", "Deleted", "Completed", "Cancelled", "No Show"].includes(item.status) && (
+                            <div
+                              ref={dropdownRef}
+                              className="absolute w-44 bg-white border rounded-lg shadow-lg z-50"
+                              style={{
+                                top: index >= queue.length - 3 ? '-120%' : '100%',
+                                right: 0,
+                              }}
+                            >
+                              <ul className="text-sm text-gray-700">
+                                {item.status === "Pending" && (
+                                  <>
+                                    <li
+                                      onClick={() => sendStatus("Scheduled", item.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Scheduled
+                                    </li>
+                                    <li
+                                      onClick={() => sendStatus("Refused", item.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Refused
+                                    </li>
+                                    <li
+                                      onClick={() => sendStatus("Deleted", item.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Deleted
+                                    </li>
+                                  </>
+                                )}
+
+                                {item.status === "Scheduled" && (
+                                  <>
+                                    <li
+                                      onClick={() => sendStatus("Checked In", item.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Checked In
+                                    </li>
+                                    <li
+                                      onClick={() => sendStatus("No Show", item.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      No Show
+                                    </li>
+                                    <li
+                                      onClick={() => sendStatus("Cancelled", item.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Cancelled
+                                    </li>
+                                  </>
+                                )}
+
+                                {item.status === "Checked In" && (
+                                  <>
+                                    <li
+                                      onClick={() => sendStatus("In Progress", item.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      In Progress
+                                    </li>
+                                    <li
+                                      onClick={() => sendStatus("Cancelled", item.id)}
+                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    >
+                                      Cancelled
+                                    </li>
+                                  </>
+                                )}
+
+                                {item.status === "In Progress" && (
+                                  <li
+                                    onClick={() => sendStatus("Completed", item.id)}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    Completed
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                          )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="6"
-                    className="text-center py-4 text-gray-500 italic"
-                  >
+                  <td colSpan="6" className="text-center py-4 text-gray-500 italic">
                     No queue data
                   </td>
                 </tr>
               )}
             </tbody>
+
           </table>
         </div>
       </div>
