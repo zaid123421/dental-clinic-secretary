@@ -13,6 +13,8 @@ import successImage from "../../assets/success.gif";
 import error from "../../assets/error.gif";
 import { BsThreeDots } from "react-icons/bs";
 import errorImage from "../../assets/error.gif";
+import { FiPlus } from "react-icons/fi";
+import Select from "react-select";
 
 export default function ShowPatientAppointments() {
   const nav = useNavigate();
@@ -35,6 +37,13 @@ export default function ShowPatientAppointments() {
   const [activeFilter, setActiveFilter] = useState("");
   const [refreshFlag, setRefreshFlag] = useState(0);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [doctors, setDoctors] = useState([]);
+
+  const [doctorId, setDoctorId] = useState("");
+  const [addAppointment, setAddAppointment] = useState(false);
+  const [date, setDate] = useState("");
+  const [fromTime, setFromTime] = useState("");
+  const [toTime, setToTime] = useState("");
 
   const dropdownRef = useRef(null);
 
@@ -78,6 +87,35 @@ export default function ShowPatientAppointments() {
     fetchAppointments(today, today, activeFilter);
   }, [refreshFlag]);
 
+  useEffect(() => {
+  const controller = new AbortController();
+
+  const fetchDoctors = async () => {
+    try {
+      const response = await axios.get(`${BaseUrl}/doctor`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
+      });
+      if (response.data.status === 1) {
+        setDoctors(
+          response.data.data.map((doc) => ({
+            value: doc.id,
+            label: doc.name,
+          }))
+        );
+      }
+    } catch (error) {
+      if (error.name !== "CanceledError") {
+        console.error("Error fetching doctors:", error);
+      }
+    }
+  };
+
+  fetchDoctors();
+
+    return () => controller.abort();
+  }, [token]);
+
   // Fetch Appointments
   const fetchAppointments = async (from = fromDate, to = toDate, status = "") => {
     setIsLoading(true);
@@ -100,6 +138,88 @@ export default function ShowPatientAppointments() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const addNewAppointment = async (e) => {
+  e.preventDefault();
+  if (!doctorId || !patientId || !date || !fromTime || !toTime) {
+    setModal({
+      isOpen: true,
+      message: "Please fill all fields!",
+      image: errorImage,
+    });
+    return;
+  }
+  const startDateTime = `${date}T${fromTime}`;
+  const endDateTime = `${date}T${toTime}`;
+  if (new Date(endDateTime) <= new Date(startDateTime)) {
+    setModal({
+      isOpen: true,
+      message: "End time must be after start time!",
+      image: errorImage,
+    });
+    return;
+  }
+  setIsLoading(true);
+  try {
+  const response = await axios.post(
+    `${BaseUrl}/appointment`,
+    {
+      doctor_id: doctorId,
+      patient_id: patientId,
+      start_time: formatDateTime(startDateTime),
+      end_time: formatDateTime(endDateTime),
+    },
+    {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (response.data.status === 1) {
+    setModal({
+      isOpen: true,
+      message: response.data.message || "Appointment added successfully!",
+      image: successImage,
+    });
+    setAddAppointment(false);
+    fetchAppointments();
+
+    setDoctorId("")
+    setDate("")
+    setFromTime("")
+    setToTime("")
+    setAddAppointment(false)
+    } else {
+      setModal({
+        isOpen: true,
+        message: response.data.message || "Failed to add appointment!",
+        image: errorImage,
+      });
+    }
+  } catch (error) {
+    console.error("Error adding appointment:", error);
+    setModal({
+      isOpen: true,
+      message: "Something went wrong!",
+      image: errorImage,
+    });
+  } finally {
+    setIsLoading(false);
+  }
+  };
+
+  const formatDateTime = (value) => {
+    const date = new Date(value);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
   async function sendStatus(status, appointmentId) {
@@ -147,6 +267,13 @@ export default function ShowPatientAppointments() {
           />
           <Title className="flex-1" label="Patient Appointments" />
         </div>
+
+        <button
+          onClick={() => setAddAppointment(true)}
+          className="z-[50] w-fit rounded-xl p-3 fixed bottom-[25px] right-[25px] bg-[#089bab] hover:bg-[#047986] text-white duration-300"
+        >
+          <FiPlus className="text-2xl" />
+        </button>
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-4 items-center">
@@ -370,6 +497,82 @@ export default function ShowPatientAppointments() {
           <p className="text-gray-500 text-center mt-10">No appointments found.</p>
         )}
       </div>
+
+      {/* Add Appointment Box */}
+      {addAppointment && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-2">
+          <div className="bg-white rounded-xl p-5 text-xl items-center shadow-xl w-[500px] relative">
+            <span onClick={() =>{
+              setDoctorId("")
+              setDate("")
+              setFromTime("")
+              setToTime("")
+              setAddAppointment(false)
+              }}
+              className="absolute right-[20px] top-[20px] text-black hover:cursor-pointer">X</span>
+            <h2 className="text-center text-2xl font-bold">Add Appointment</h2>
+            <form className="space-y-4" onSubmit={addNewAppointment}>
+
+              {/* Doctor */}
+              <div>
+                <label className="block text-gray-700 mb-1">Doctor</label>
+                <Select
+                  options={doctors}
+                  onChange={(option) => setDoctorId(option.value)}
+                  placeholder="Search Doctor..."
+                  isSearchable
+                />
+              </div>
+
+              {/* Date */}
+              <div>
+                <label className="block text-gray-700 mb-1">Date</label>
+                <input
+                  type="date"
+                  className="w-full border p-2 rounded-lg focus:ring focus:ring-[#089bab]"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </div>
+
+              {/* From Time */}
+              <div>
+                <label className="block text-gray-700 mb-1">From</label>
+                <input
+                  type="time"
+                  className="w-full border p-2 rounded-lg focus:ring focus:ring-[#089bab]"
+                  value={fromTime}
+                  onChange={(e) => setFromTime(e.target.value)}
+                />
+              </div>
+
+              {/* To Time */}
+              <div>
+                <label className="block text-gray-700 mb-1">To</label>
+                <input
+                  type="time"
+                  className="w-full border p-2 rounded-lg focus:ring focus:ring-[#089bab]"
+                  value={toTime}
+                  onChange={(e) => setToTime(e.target.value)}
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={!doctorId?.toString() || !patientId?.toString() || !date || !fromTime || !toTime}
+                className={`w-full py-2 rounded-lg text-white transition
+                  ${!doctorId?.toString() || !patientId?.toString() || !date || !fromTime || !toTime
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#089bab] hover:bg-[#067c88]"}`}
+              >
+                Add Appointment
+              </button>
+
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Loading & Modal */}
       {isLoading && <Loading />}

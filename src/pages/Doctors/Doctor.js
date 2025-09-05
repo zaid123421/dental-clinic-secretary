@@ -68,6 +68,12 @@ export default function Doctor() {
     setFromDate(today);
     setToDate(today);
     fetchAppointments(today, today, activeFilter);
+  }, []);
+
+  useEffect(() => {
+    if (fromDate && toDate) {
+      fetchAppointments(fromDate, toDate, activeFilter);
+    }
   }, [refreshFlag]);
 
   async function sendStatus(status, appointmentId) {

@@ -32,14 +32,17 @@ export default function Appointments() {
 
   const [doctorId, setDoctorId] = useState("");
   const [patientId, setPatientId] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+
   const [refreshFlag, setRefreshFlag] = useState(0);
 
   const [doctors, setDoctors] = useState([]);
   const [patients, setPatients] = useState([]);
 
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+
+  const [date, setDate] = useState("");
+  const [fromTime, setFromTime] = useState("");
+  const [toTime, setToTime] = useState("");
 
   const dropdownRef = useRef(null);
 
@@ -145,8 +148,7 @@ export default function Appointments() {
 
   const addNewAppointment = async (e) => {
   e.preventDefault();
-
-  if (!doctorId || !patientId || !startTime || !endTime) {
+  if (!doctorId || !patientId || !date || !fromTime || !toTime) {
     setModal({
       isOpen: true,
       message: "Please fill all fields!",
@@ -154,8 +156,9 @@ export default function Appointments() {
     });
     return;
   }
-
-  if (new Date(endTime) <= new Date(startTime)) {
+  const startDateTime = `${date}T${fromTime}`;
+  const endDateTime = `${date}T${toTime}`;
+  if (new Date(endDateTime) <= new Date(startDateTime)) {
     setModal({
       isOpen: true,
       message: "End time must be after start time!",
@@ -163,24 +166,23 @@ export default function Appointments() {
     });
     return;
   }
-
   setIsLoading(true);
   try {
-    const response = await axios.post(
-      `${BaseUrl}/appointment`,
-      {
-        doctor_id: doctorId,
-        patient_id: patientId,
-        start_time: formatDateTime(startTime),
-        end_time: formatDateTime(endTime),
+  const response = await axios.post(
+    `${BaseUrl}/appointment`,
+    {
+      doctor_id: doctorId,
+      patient_id: patientId,
+      start_time: formatDateTime(startDateTime),
+      end_time: formatDateTime(endDateTime),
+    },
+    {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
       },
-      {
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    }
+  );
 
   if (response.data.status === 1) {
     setModal({
@@ -191,10 +193,12 @@ export default function Appointments() {
     setAddAppointment(false);
     fetchAppointments();
 
-    setDoctorId("");
-    setPatientId("");
-    setStartTime("");
-    setEndTime("");
+    setDoctorId("")
+    setPatientId("")
+    setDate("")
+    setFromTime("")
+    setToTime("")
+    setAddAppointment(false)
     } else {
       setModal({
         isOpen: true,
@@ -212,7 +216,7 @@ export default function Appointments() {
   } finally {
     setIsLoading(false);
   }
-};
+  };
 
   async function fetchAppointments(from = fromDate, to = toDate) {
     setIsLoading(true);
@@ -495,8 +499,9 @@ export default function Appointments() {
             <span onClick={() =>{
               setDoctorId("")
               setPatientId("")
-              setStartTime("")
-              setEndTime("")
+              setDate("")
+              setFromTime("")
+              setToTime("")
               setAddAppointment(false)
               }}
               className="absolute right-[20px] top-[20px] text-black hover:cursor-pointer">X</span>
@@ -525,32 +530,45 @@ export default function Appointments() {
                 />
               </div>
 
-              {/* Start Time */}
+              {/* Date */}
               <div>
-                <label className="block text-gray-700 mb-1">Start Time</label>
+                <label className="block text-gray-700 mb-1">Date</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   className="w-full border p-2 rounded-lg focus:ring focus:ring-[#089bab]"
-                  onChange={(e) => setStartTime(e.target.value)}
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                 />
               </div>
 
-              {/* End Time */}
+              {/* From Time */}
               <div>
-                <label className="block text-gray-700 mb-1">End Time</label>
+                <label className="block text-gray-700 mb-1">From</label>
                 <input
-                  type="datetime-local"
+                  type="time"
                   className="w-full border p-2 rounded-lg focus:ring focus:ring-[#089bab]"
-                  onChange={(e) => setEndTime(e.target.value)}
+                  value={fromTime}
+                  onChange={(e) => setFromTime(e.target.value)}
+                />
+              </div>
+
+              {/* To Time */}
+              <div>
+                <label className="block text-gray-700 mb-1">To</label>
+                <input
+                  type="time"
+                  className="w-full border p-2 rounded-lg focus:ring focus:ring-[#089bab]"
+                  value={toTime}
+                  onChange={(e) => setToTime(e.target.value)}
                 />
               </div>
 
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={!doctorId?.toString() || !patientId?.toString() || !startTime || !endTime}
+                disabled={!doctorId?.toString() || !patientId?.toString() || !date || !fromTime || !toTime}
                 className={`w-full py-2 rounded-lg text-white transition
-                  ${!doctorId?.toString() || !patientId?.toString() || !startTime || !endTime
+                  ${!doctorId?.toString() || !patientId?.toString() || !date || !fromTime || !toTime
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-[#089bab] hover:bg-[#067c88]"}`}
               >
