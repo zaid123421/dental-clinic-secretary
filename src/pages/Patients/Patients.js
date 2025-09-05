@@ -13,6 +13,7 @@ import { FaBan } from "react-icons/fa";
 import { GoDash } from "react-icons/go";
 import { IoIosSearch } from "react-icons/io";
 import { FiPlus, FiFilter } from "react-icons/fi";
+import { IoIosNotifications } from "react-icons/io";
 
 // Images
 import successImage from "../../assets/success.gif";
@@ -42,10 +43,17 @@ export default function Users() {
   const [confirmDeletePatient, setConfirmDeletePatient] = useState(false);
   const [pagination, setPagination] = useState({ current_page: 1, last_page: null });
   const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState(""); // فلتر واحد مفعل
+  const [activeFilter, setActiveFilter] = useState("");
   const [patient, setPatient] = useState({ id: null, name: "", phone_number: null });
   const [modal, setModal] = useState({ isOpen: false, message: "", image: "" });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [notification, setNotification] = useState(false);
+
+
+  const [title_ar, setTitleAr] = useState("");
+  const [body_ar, setBodyAr] = useState("");
+  const [title_en, setTitleEn] = useState("");
+  const [body_en, setBodyEn] = useState("");
 
   // useNavigate
   const nav = useNavigate();
@@ -130,6 +138,40 @@ export default function Users() {
     }
   }
 
+  // Send Notification
+  async function sendNotification() {
+    setIsLoading(true);
+    const formData = new FormData();
+    formData.append("patient_id", patient.id);
+
+    formData.append("title_ar", title_ar);
+    formData.append("body_ar", body_ar);
+
+    formData.append("title_en", title_en);
+    formData.append("body_en", body_en);
+
+    try {
+      await axios.post(`${BaseUrl}/notifications/send`, formData, {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setBodyAr(null);
+      setBodyEn(null);
+      setTitleAr(null);
+      setTitleEn(null);
+      setNotification(false);
+      setPatient({ id: null });
+      setModal({ isOpen: true, message: "The Notification Has Been Sent Successfully !", image: successImage });
+    } catch (err){
+      console.log(err)
+      setModal({ isOpen: true, message: "Something Went Wrong !", image: error });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   // Pagination
   function hanldeIncremetPage() {
     if (pagination.current_page < pagination.last_page) {
@@ -164,6 +206,11 @@ export default function Users() {
       <td className={`${patient.balance > 0 ? "text-green-500" : patient.balance < 0 ? "text-red-500" : "text-gray-500"}`}>
         {patient.balance.toLocaleString()}
       </td>
+      <td><IoIosNotifications onClick={(e) => {
+        e.stopPropagation();
+        setPatient({ id: patient.id })
+        setNotification(true);
+      }} className="text-2xl text-yellow-500 justify-self-center"/></td>
       <td className="p-3">
         {patient.is_banned ? <FaBan className="text-2xl text-red-500 justify-self-center" /> : <GoDash className="text-2xl text-green-500 justify-self-center" />}
       </td>
@@ -201,7 +248,6 @@ export default function Users() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
 
   return (
     <>
@@ -288,6 +334,7 @@ export default function Users() {
                 <th className="p-3 rounded-tl-2xl">Name</th>
                 <th className="p-3">Phone Number</th>
                 <th className="p-3">Payments</th>
+                <th className="p-3">Notifications</th>
                 <th className="p-3">Banned</th>
                 <th className="py-3 rounded-tr-2xl">Delete</th>
               </tr>
@@ -295,7 +342,7 @@ export default function Users() {
             <tbody className="rounded-2xl">
               {!patients || patients.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center text-gray-500 bg-white font-semibold p-5">
+                  <td colSpan="6" className="text-center text-gray-500 bg-white font-semibold p-5">
                     No Patients Yet
                   </td>
                 </tr>
@@ -342,7 +389,103 @@ export default function Users() {
             </button>
           </div>
         )}
+
       </div>
+
+      {/* Send Notification */}
+      {notification && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-2">
+          <div className="bg-white rounded-xl p-5 text-xl items-center shadow-xl w-[500px] relative">
+            <h2 className="text-center font-bold">Send Notification</h2>
+            <div className="flex flex-col">
+
+              {/* Arabic Title */}
+              <label className="mb-2 font-bold">
+                Title (AR) <span className="ml-1 text-sm text-red-500 font-semibold">required</span>
+              </label>
+              <input
+                type="text"
+                value={title_ar}
+                onChange={(e) => setTitleAr(e.target.value)}
+                placeholder="Enter Arabic title"
+                className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-5 w-full
+                border border-transparent focus:border-[#089bab] focus:ring-1 focus:ring-[#089bab]"
+              />
+
+              {/* Arabic Body */}
+              <label className="mb-2 font-bold">
+                Body (AR) <span className="ml-1 text-sm text-red-500 font-semibold">required</span>
+              </label>
+              <textarea
+                value={body_ar}
+                onChange={(e) => setBodyAr(e.target.value)}
+                placeholder="Enter Arabic body"
+                className="resize-none bg-gray-200 rounded-xl py-2 px-4 outline-none mb-5 w-full
+                border border-transparent focus:border-[#089bab] focus:ring-1 focus:ring-[#089bab]"
+              />
+
+              {/* English Title */}
+              <label className="mb-2 font-bold">
+                Title (EN) <span className="ml-1 text-sm text-red-500 font-semibold">required</span>
+              </label>
+              <input
+                type="text"
+                value={title_en}
+                onChange={(e) => setTitleEn(e.target.value)}
+                placeholder="Enter English title"
+                className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-5 w-full
+                border border-transparent focus:border-[#089bab] focus:ring-1 focus:ring-[#089bab]"
+              />
+
+              {/* English Body */}
+              <label className="mb-2 font-bold">
+                Body (EN) <span className="ml-1 text-sm text-red-500 font-semibold">required</span>
+              </label>
+              <textarea
+                value={body_en}
+                onChange={(e) => setBodyEn(e.target.value)}
+                placeholder="Enter English body"
+                className="resize-none bg-gray-200 rounded-xl py-2 px-4 outline-none mb-5 w-full
+                border border-transparent focus:border-[#089bab] focus:ring-1 focus:ring-[#089bab]"
+              />
+
+            </div>
+
+            <div className="flex justify-center gap-5">
+              <button
+                onClick={() => {
+                  setNotification(false);
+                  setTitleAr("");
+                  setBodyAr("");
+                  setTitleEn("");
+                  setBodyEn("");
+                }}
+                className="bg-gray-400 text-white duration-300 rounded-xl py-1 px-4 outline-none"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() =>
+                  sendNotification({
+                    title_ar,
+                    body_ar,
+                    title_en,
+                    body_en,
+                  })
+                }
+                disabled={!title_ar || !body_ar || !title_en || !body_en}
+                className={`rounded-xl py-1 px-4 outline-none duration-300
+                  ${!title_ar || !body_ar || !title_en || !body_en
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-[#089bab] text-white hover:bg-[#077c89]"}
+                `}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Confirm Delete */}
       {confirmDeletePatient && (
