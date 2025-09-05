@@ -24,6 +24,8 @@ export default function Profile() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPasswrod, setNewPassword] = useState("");
 
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [oldPasswordError, setOldPasswordError] = useState("");
 
   const cookie = new Cookies();
@@ -76,6 +78,7 @@ export default function Profile() {
       });
       setOldPassword("");
       setNewPassword("");
+      setConfirmPassword("");
       setChangePassword(false);
       setOldPasswordError(null);
       setModal({ isOpen: true, message: "The Password Has Been Changed Successfully !", image: successImage });
@@ -142,66 +145,88 @@ export default function Profile() {
         </div>
       </div>
 
-      {changePassword && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-2">
-          <div className="bg-white rounded-xl p-5 text-xl items-center shadow-xl w-[500px] relative">
-            <h2 className="text-center font-bold text-2xl">Change Password</h2>
-            <div className="flex flex-col">
+        {changePassword && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-2">
+            <div className="bg-white rounded-xl p-5 text-xl items-center shadow-xl w-[500px] relative">
+              <h2 className="text-center font-bold text-2xl">Change Password</h2>
+              <div className="flex flex-col">
 
-              <label className="mb-2 font-bold">
-                Old Pawword <span className="ml-1 text-sm text-red-500 font-semibold">required</span>
-              </label>
-              <input
-                type="text"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                placeholder="Enter old password"
-                className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-5 w-full
-                border border-transparent focus:border-[#089bab] focus:ring-1 focus:ring-[#089bab]"
-              />
-              {oldPasswordError && <p className="text-red-500 text-sm mb-3 mt-[-10px] font-semibold">{oldPasswordError}</p>}
-
-              <label className="mb-2 font-bold">
-                New Password <span className="ml-1 text-sm text-red-500 font-semibold">required</span>
-              </label>
+                <label className="mb-2 font-bold">
+                  Old Password <span className="ml-1 text-sm text-red-500 font-semibold">required</span>
+                </label>
                 <input
-                type="text"
-                value={newPasswrod}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter old password"
-                className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-5 w-full
-                border border-transparent focus:border-[#089bab] focus:ring-1 focus:ring-[#089bab]"
-              />
+                  type="password"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  placeholder="Enter old password"
+                  className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-5 w-full
+                  border border-transparent focus:border-[#089bab] focus:ring-1 focus:ring-[#089bab]"
+                />
+                {oldPasswordError && <p className="text-red-500 text-sm mb-3 mt-[-10px] font-semibold">{oldPasswordError}</p>}
 
-            </div>
+                <label className="mb-2 font-bold">
+                  New Password <span className="ml-1 text-sm text-red-500 font-semibold">required</span>
+                </label>
+                  <input
+                  type="password"
+                  value={newPasswrod}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter old password"
+                  className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-5 w-full
+                  border border-transparent focus:border-[#089bab] focus:ring-1 focus:ring-[#089bab]"
+                />
 
-            <div className="flex justify-center gap-5">
-              <button
-                onClick={() => {
-                  setChangePassword(false);
-                  setOldPassword("");
-                  setNewPassword("");
-                  setOldPasswordError(null);
-                }}
-                className="bg-gray-400 text-white duration-300 rounded-xl py-1 px-4 outline-none"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => sendNewPassword()}
-                disabled={!oldPassword || !newPasswrod || oldPassword.length < 8 || newPasswrod.length < 8}
-                className={`rounded-xl py-1 px-4 outline-none duration-300
-                  ${!oldPassword || !newPasswrod || oldPassword.length < 8 || newPasswrod.length < 8
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-[#089bab] text-white hover:bg-[#077c89]"}
-                `}
-              >
-                Send
-              </button>
+                <label className="mb-2 font-bold">
+                  Confirm Password <span className="ml-1 text-sm text-red-500 font-semibold">required</span>
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="bg-gray-200 rounded-xl py-1 px-4 outline-none mb-5 w-full
+                  border border-transparent focus:border-[#089bab] focus:ring-1 focus:ring-[#089bab']"
+                />
+                {/* {confirmPasswordError && <p className="text-red-500 text-sm mb-3 mt-[-10px] font-semibold">{confirmPasswordError}</p>} */}
+
+              </div>
+
+              <div className="flex justify-center gap-5">
+                <button
+                  onClick={() => {
+                    setChangePassword(false);
+                    setOldPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    setOldPasswordError(null);
+                  }}
+                  className="bg-gray-400 text-white duration-300 rounded-xl py-1 px-4 outline-none"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => sendNewPassword()}
+                  disabled={
+                    !oldPassword || !newPasswrod || !confirmPassword || 
+                    oldPassword.length < 8 || newPasswrod.length < 8 || confirmPassword.length < 8 ||
+                    newPasswrod !== confirmPassword
+                  }
+                  className={`rounded-xl py-1 px-4 outline-none duration-300
+                    ${
+                      !oldPassword || !newPasswrod || !confirmPassword || 
+                      oldPassword.length < 8 || newPasswrod.length < 8 || confirmPassword.length < 8 ||
+                      newPasswrod !== confirmPassword
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-[#089bab] text-white hover:bg-[#077c89]"
+                    }
+                  `}
+                >
+                  Send
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
         {/* Loading */}
         {isLoading && <Loading />}
