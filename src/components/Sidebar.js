@@ -9,6 +9,7 @@ import { FaArrowRight, FaUsers } from "react-icons/fa";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import { TbWorld } from "react-icons/tb";
 import { MdDateRange } from "react-icons/md";
+import { FaUserDoctor } from "react-icons/fa6";
 // Hooks
 import { useState } from "react";
 // Cookies
@@ -86,7 +87,8 @@ export default function Sidebar() {
         <ul>
           <Link to="/queue" label="Queue" responsive={responsive} icon= {<HiQueueList className={`md:mr-3 ${responsive ? '' : 'mr-3'} text-lg md:text-2xl`}/>}/>
           <Link to="/appointments" label="Appointments" responsive={responsive} icon= {<MdDateRange className={`md:mr-3 ${responsive ? '' : 'mr-3'} text-lg md:text-2xl`}/>}/>
-          <Link to="/patients" label="Patients" responsive={responsive} icon= {<FaUsers className={`md:mr-3 ${responsive ? '' : 'mr-3'} text-lg md:text-2xl`}/>}/>
+          <Link to="/doctors" label="Doctors" responsive={responsive} icon= {<MdDateRange className={`md:mr-3 ${responsive ? '' : 'mr-3'} text-lg md:text-2xl`}/>}/>
+          <Link to="/patients" label="Patients" responsive={responsive} icon= {<FaUserDoctor className={`md:mr-3 ${responsive ? '' : 'mr-3'} text-lg md:text-2xl`}/>}/>
           <button
           className={`${responsive ? 'w-full' : 'w-[200px]'} md:w-[220px] p-2 rounded-md cursor-pointer my-2 flex items-center duration-[0.3s] hover:bg-white hover:text-[#089bab]`}
           onClick={() => setLogoutConfirmBox(true)}
@@ -98,7 +100,7 @@ export default function Sidebar() {
       </div>
 
       {/* Show Logout Confirm Box */}
-      {logutConfirmBox &&
+      {logutConfirmBox &&(
         <Confirm
           img={logout}
           label="Do You Want Really To Logout ?"
@@ -106,7 +108,7 @@ export default function Sidebar() {
           onConfirm={() => handleLogout()}
           confirmButtonName="Logout"
         />
-      }
+      )}
 
       {/* Loading Spinner When Communicating With Backend */}
       {isLoading && <Loading />}
