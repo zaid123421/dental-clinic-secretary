@@ -396,7 +396,7 @@ export default function Users() {
       {notification && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-2">
           <div className="bg-white rounded-xl p-5 text-xl items-center shadow-xl w-[500px] relative">
-            <h2 className="text-center font-bold">Send Notification</h2>
+            <h2 className="text-center font-bold text-2xl">Send Notification</h2>
             <div className="flex flex-col">
 
               {/* Arabic Title */}
