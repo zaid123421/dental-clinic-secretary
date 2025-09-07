@@ -41,6 +41,7 @@ export default function Login() {
     try {
       const res = await axios.post(`${BaseUrl}/receptionist/login`, formData, {
         headers: {
+          "ngrok-skip-browser-warning": true,
           "Content-Type": "application/json",
         },
       });

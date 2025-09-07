@@ -49,7 +49,6 @@ export default function Users() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [notification, setNotification] = useState(false);
 
-
   const [title_ar, setTitleAr] = useState("");
   const [body_ar, setBodyAr] = useState("");
   const [title_en, setTitleEn] = useState("");
@@ -79,6 +78,7 @@ export default function Users() {
     axios
       .get(url, {
         headers: {
+          "ngrok-skip-browser-warning": true,
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
@@ -124,6 +124,7 @@ export default function Users() {
     try {
       await axios.delete(`${BaseUrl}/patient/${patient.id}`, {
         headers: {
+          "ngrok-skip-browser-warning": true,
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
@@ -153,6 +154,7 @@ export default function Users() {
     try {
       await axios.post(`${BaseUrl}/notifications/send`, formData, {
         headers: {
+          "ngrok-skip-browser-warning": true,
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },

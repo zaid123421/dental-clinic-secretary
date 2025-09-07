@@ -86,6 +86,7 @@ export default function Doctor() {
         `${BaseUrl}/appointment/${appointmentId}`, formData,
         {
           headers: {
+            "ngrok-skip-browser-warning": true,
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
@@ -119,6 +120,7 @@ export default function Doctor() {
         formData,
         {
           headers: {
+            "ngrok-skip-browser-warning": true,
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
@@ -169,7 +171,11 @@ export default function Doctor() {
       if (status) url += `&filter[status]=${status}`;
 
       const response = await axios.get(url, {
-        headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "ngrok-skip-browser-warning": true,
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`
+        },
       });
 
       if (response.data.status === 1) {

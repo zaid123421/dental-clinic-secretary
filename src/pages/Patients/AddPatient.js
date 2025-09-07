@@ -70,6 +70,7 @@ export default function AddPatient() {
     useEffect(() => {
       axios.get(`${BaseUrl}/disease`, {
         headers: {
+          "ngrok-skip-browser-warning": true,
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
@@ -84,6 +85,7 @@ export default function AddPatient() {
     useEffect(() => {
       axios.get(`${BaseUrl}/intake-medication`, {
         headers: {
+          "ngrok-skip-browser-warning": true,
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
@@ -128,6 +130,7 @@ export default function AddPatient() {
       try {
         await axios.post(`${BaseUrl}/patient`, formData, {
           headers: {
+            "ngrok-skip-browser-warning": true,
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },

@@ -55,7 +55,10 @@ export default function Queue() {
     const fetchDoctors = async () => {
       try {
         const response = await axios.get(`${BaseUrl}/doctor`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            "ngrok-skip-browser-warning": true,
+            Authorization: `Bearer ${token}`
+          },
         });
         if (response.data.status === 1) {
           setDoctors(
@@ -96,7 +99,10 @@ export default function Queue() {
     const fetchQueue = async () => {
       try {
         const response = await axios.get(`${BaseUrl}/queue-turns`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            "ngrok-skip-browser-warning": true,
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         if (response.data.status === 1) {
@@ -147,15 +153,13 @@ export default function Queue() {
     formData.append("queue_turn_status", status);
     formData.append("_method", "patch");
     try {
-      await axios.post(
-        `${BaseUrl}/queue-turns/${turnId}`, formData,
-        {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axios.post(`${BaseUrl}/queue-turns/${turnId}`, formData, {
+        headers: {
+          "ngrok-skip-browser-warning": true,
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setSelectedAppointment(null);
       setRefreshFlag((prev) => prev + 1);
     } catch (err) {
@@ -171,66 +175,65 @@ export default function Queue() {
   }
 
   const addNewAppointment = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!doctorId || !patientId) {
-    setModal({
-      isOpen: true,
-      message: "Please fill all fields!",
-      image: errorImage,
-    });
-    return;
-  }
-
-
-  setIsLoading(true);
-  try {
-    const response = await axios.post(
-      `${BaseUrl}/queue-turns`,
-      {
-        doctor_id: doctorId,
-        patient_id: patientId,
-      },
-      {
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-  if (response.data.status === 1) {
-    setModal({
-      isOpen: true,
-      message: response.data.message || "Appointment added successfully!",
-      image: successImage,
-    });
-    setAddAppointment(false);
-
-    setDoctorId("");
-    setPatientId("");
-    } else {
+    if (!doctorId || !patientId) {
       setModal({
         isOpen: true,
-        message: response.data.message || "Failed to add appointment!",
+        message: "Please fill all fields!",
         image: errorImage,
       });
+      return;
     }
-  } catch (error) {
-    console.error("Error adding appointment:", error);
-    setModal({
-      isOpen: true,
-      message: "Something went wrong!",
-      image: errorImage,
-    });
-  } finally {
-    setIsLoading(false);
-  }
+
+    setIsLoading(true);
+    try {
+      const response = await axios.post(
+        `${BaseUrl}/queue-turns`,
+        {
+          doctor_id: doctorId,
+          patient_id: patientId,
+        },
+        {
+          headers: {
+            "ngrok-skip-browser-warning": true,
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status === 1) {
+        setModal({
+          isOpen: true,
+          message: response.data.message || "Appointment added successfully!",
+          image: successImage,
+        });
+        setAddAppointment(false);
+
+        setDoctorId("");
+        setPatientId("");
+      } else {
+        setModal({
+          isOpen: true,
+          message: response.data.message || "Failed to add appointment!",
+          image: errorImage,
+        });
+      }
+    } catch (error) {
+      console.error("Error adding appointment:", error);
+      setModal({
+        isOpen: true,
+        message: "Something went wrong!",
+        image: errorImage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <>
-
       <Sidebar />
       <div className="page-content p-3 md:py-5 md:p-5 bg-[#089bab1c]">
         <Title label="Queue" className="px-1" />
@@ -242,28 +245,36 @@ export default function Queue() {
           <FiPlus className="text-2xl" />
         </button>
 
-        <div className="overflow-x-auto md:overflow-visible shadow-xl rounded-2xl mt-5">
+        <div className="overflow-x-auto shadow-xl rounded-2xl mt-5">
           <table className="min-w-full border border-gray-200 bg-white rounded-xl shadow-sm">
-            
             <thead className="bg-[#089bab] text-white">
               <tr>
-                <th className="px-4 py-2 text-center rounded-tl-2xl">Patient</th>
+                <th className="px-4 py-2 text-center rounded-tl-2xl">
+                  Patient
+                </th>
                 <th className="px-4 py-2 text-center">Doctor</th>
                 <th className="px-4 py-2 text-center">Arrival Time</th>
                 <th className="px-4 py-2 text-center">Appointment Time</th>
                 <th className="px-4 py-2 text-center">Status</th>
-                <th className="px-4 py-2 text-center rounded-tr-2xl">Edit Status</th>
+                <th className="px-4 py-2 text-center rounded-tr-2xl">
+                  Edit Status
+                </th>
               </tr>
             </thead>
 
             <tbody>
               {queue.length > 0 ? (
                 queue.map((item, index) => (
-                  <tr key={item.id} className="border-b hover:bg-gray-50 text-center font-semibold">
+                  <tr
+                    key={item.id}
+                    className="border-b hover:bg-gray-50 text-center font-semibold"
+                  >
                     <td className="px-4 py-2">{item.patient?.name || "-"}</td>
                     <td className="px-4 py-2">{item.doctor?.name || "-"}</td>
                     <td className="px-4 py-2">{item.arrival_time || "-"}</td>
-                    <td className="px-4 py-2">{item.appointment_time || "-"}</td>
+                    <td className="px-4 py-2">
+                      {item.appointment_time || "-"}
+                    </td>
                     <td className="px-4 py-2">
                       <span
                         className={
@@ -276,121 +287,154 @@ export default function Queue() {
                             : item.status === "Completed"
                             ? "text-green-500"
                             : "text-black"
-                        }>
+                        }
+                      >
                         {item.status}
                       </span>
                     </td>
                     <td className="px-4 py-2 text-center relative">
-                        {["Refused", "Deleted", "Completed", "Cancelled", "No Show"].includes(item.status) ? (
-                          "-"
-                        ) : (
-                          <BsThreeDots
-                            className="justify-self-center cursor-pointer"
-                            onClick={() =>
-                              setSelectedAppointment(
-                                selectedAppointment === item.id ? null : item.id
-                              )
-                            }
-                          />
-                        )}
+                      {[
+                        "Refused",
+                        "Deleted",
+                        "Completed",
+                        "Cancelled",
+                        "No Show",
+                      ].includes(item.status) ? (
+                        "-"
+                      ) : (
+                        <BsThreeDots
+                          className="justify-self-center cursor-pointer"
+                          onClick={() =>
+                            setSelectedAppointment(
+                              selectedAppointment === item.id ? null : item.id
+                            )
+                          }
+                        />
+                      )}
 
-                        {selectedAppointment === item.id &&
-                          !["Refused", "Deleted", "Completed", "Cancelled", "No Show"].includes(item.status) && (
-                            <div
-                              ref={dropdownRef}
-                              className="absolute w-44 bg-white border rounded-lg shadow-lg z-50"
-                              style={{
-                                top: index >= queue.length - 3 ? '-120%' : '100%',
-                                right: 0,
-                              }}
-                            >
-                              <ul className="text-sm text-gray-700">
-                                {item.status === "Pending" && (
-                                  <>
-                                    <li
-                                      onClick={() => sendStatus("Scheduled", item.id)}
-                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                    >
-                                      Scheduled
-                                    </li>
-                                    <li
-                                      onClick={() => sendStatus("Refused", item.id)}
-                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                    >
-                                      Refused
-                                    </li>
-                                    <li
-                                      onClick={() => sendStatus("Deleted", item.id)}
-                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                    >
-                                      Deleted
-                                    </li>
-                                  </>
-                                )}
-
-                                {item.status === "Scheduled" && (
-                                  <>
-                                    <li
-                                      onClick={() => sendStatus("Checked In", item.id)}
-                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                    >
-                                      Checked In
-                                    </li>
-                                    <li
-                                      onClick={() => sendStatus("No Show", item.id)}
-                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                    >
-                                      No Show
-                                    </li>
-                                    <li
-                                      onClick={() => sendStatus("Cancelled", item.id)}
-                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                    >
-                                      Cancelled
-                                    </li>
-                                  </>
-                                )}
-
-                                {item.status === "Checked In" && (
-                                  <>
-                                    <li
-                                      onClick={() => sendStatus("In Progress", item.id)}
-                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                    >
-                                      In Progress
-                                    </li>
-                                    <li
-                                      onClick={() => sendStatus("Cancelled", item.id)}
-                                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                    >
-                                      Cancelled
-                                    </li>
-                                  </>
-                                )}
-
-                                {item.status === "In Progress" && (
+                      {selectedAppointment === item.id &&
+                        ![
+                          "Refused",
+                          "Deleted",
+                          "Completed",
+                          "Cancelled",
+                          "No Show",
+                        ].includes(item.status) && (
+                          <div
+                            ref={dropdownRef}
+                            className="absolute w-44 bg-white border rounded-lg shadow-lg z-50"
+                            style={{
+                              top: index >= queue.length - 3 ? "-120%" : "100%",
+                              right: 0,
+                            }}
+                          >
+                            <ul className="text-sm text-gray-700">
+                              {item.status === "Pending" && (
+                                <>
                                   <li
-                                    onClick={() => sendStatus("Completed", item.id)}
+                                    onClick={() =>
+                                      sendStatus("Scheduled", item.id)
+                                    }
                                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                                   >
-                                    Completed
+                                    Scheduled
                                   </li>
-                                )}
-                              </ul>
-                            </div>
-                          )}
+                                  <li
+                                    onClick={() =>
+                                      sendStatus("Refused", item.id)
+                                    }
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    Refused
+                                  </li>
+                                  <li
+                                    onClick={() =>
+                                      sendStatus("Deleted", item.id)
+                                    }
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    Deleted
+                                  </li>
+                                </>
+                              )}
+
+                              {item.status === "Scheduled" && (
+                                <>
+                                  <li
+                                    onClick={() =>
+                                      sendStatus("Checked In", item.id)
+                                    }
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    Checked In
+                                  </li>
+                                  <li
+                                    onClick={() =>
+                                      sendStatus("No Show", item.id)
+                                    }
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    No Show
+                                  </li>
+                                  <li
+                                    onClick={() =>
+                                      sendStatus("Cancelled", item.id)
+                                    }
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    Cancelled
+                                  </li>
+                                </>
+                              )}
+
+                              {item.status === "Checked In" && (
+                                <>
+                                  <li
+                                    onClick={() =>
+                                      sendStatus("In Progress", item.id)
+                                    }
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    In Progress
+                                  </li>
+                                  <li
+                                    onClick={() =>
+                                      sendStatus("Cancelled", item.id)
+                                    }
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    Cancelled
+                                  </li>
+                                </>
+                              )}
+
+                              {item.status === "In Progress" && (
+                                <li
+                                  onClick={() =>
+                                    sendStatus("Completed", item.id)
+                                  }
+                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                >
+                                  Completed
+                                </li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="text-center py-4 text-gray-500 italic">
+                  <td
+                    colSpan="6"
+                    className="text-center py-4 text-gray-500 italic"
+                  >
                     No queue data
                   </td>
                 </tr>
               )}
             </tbody>
-
           </table>
         </div>
       </div>
@@ -399,15 +443,18 @@ export default function Queue() {
       {addAppointment && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-2">
           <div className="bg-white rounded-xl p-5 text-xl items-center shadow-xl w-[500px] relative">
-            <span onClick={() =>{
-              setDoctorId("")
-              setPatientId("")
-              setAddAppointment(false)
+            <span
+              onClick={() => {
+                setDoctorId("");
+                setPatientId("");
+                setAddAppointment(false);
               }}
-              className="absolute right-[20px] top-[20px] text-black hover:cursor-pointer">X</span>
+              className="absolute right-[20px] top-[20px] text-black hover:cursor-pointer"
+            >
+              X
+            </span>
             <h2 className="text-center text-2xl font-bold">Add Appointment</h2>
             <form className="space-y-4" onSubmit={addNewAppointment}>
-
               {/* Doctor */}
               <div>
                 <label className="block text-gray-700 mb-1">Doctor</label>
@@ -435,13 +482,14 @@ export default function Queue() {
                 type="submit"
                 disabled={!doctorId?.toString() || !patientId?.toString()}
                 className={`w-full py-2 rounded-lg text-white transition
-                  ${!doctorId?.toString() || !patientId?.toString()
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#089bab] hover:bg-[#067c88]"}`}
+                  ${
+                    !doctorId?.toString() || !patientId?.toString()
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#089bab] hover:bg-[#067c88]"
+                  }`}
               >
                 Add Appointment
               </button>
-
             </form>
           </div>
         </div>
@@ -451,8 +499,7 @@ export default function Queue() {
       {isLoading && <Loading />}
 
       {/* State Of The Communicating With Backend (Successfull Or Failure) */}
-      {modal.isOpen && (<Modal message={modal.message} imageSrc={modal.image} />)}
-
+      {modal.isOpen && <Modal message={modal.message} imageSrc={modal.image} />}
     </>
   );
 }

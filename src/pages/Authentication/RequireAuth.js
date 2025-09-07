@@ -23,6 +23,7 @@ export default function RequireAuth() {
   const checkTokenValidity = (token) => {
     fetch(`${BaseUrl}/medication`, {
       headers: {
+        "ngrok-skip-browser-warning": true,
         Authorization: `Bearer ${token}`,
       },
     }).then((res) => {

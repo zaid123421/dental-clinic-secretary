@@ -71,6 +71,7 @@ export default function ShowEmployee() {
       axios
         .get(`${BaseUrl}/patient/${patientId}`, {
           headers: {
+            "ngrok-skip-browser-warning": true,
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
@@ -98,6 +99,7 @@ export default function ShowEmployee() {
       axios
         .get(`${BaseUrl}/patient/${patientId}/account/transactions?page=${pagination.current_page}`, {
           headers: {
+            "ngrok-skip-browser-warning": true,
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
@@ -162,6 +164,7 @@ export default function ShowEmployee() {
     try {
       await axios.post(`${BaseUrl}/patient/${patientId}/account/${transaction.type === "deposit" ? "deposit" : "withdraw"}`, formData, {
         headers: {
+          "ngrok-skip-browser-warning": true,
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },

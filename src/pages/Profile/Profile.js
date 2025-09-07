@@ -36,6 +36,7 @@ export default function Profile() {
       try {
         const res = await axios.get(`${BaseUrl}/employee/profile`, {
           headers: {
+            "ngrok-skip-browser-warning": true,
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
@@ -60,7 +61,6 @@ export default function Profile() {
     }
   }, [modal.isOpen]);
 
-
   // Send New Password
   async function sendNewPassword() {
     setIsLoading(true);
@@ -72,6 +72,7 @@ export default function Profile() {
     try {
       await axios.post(`${BaseUrl}/password/change`, formData, {
         headers: {
+          "ngrok-skip-browser-warning": true,
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },

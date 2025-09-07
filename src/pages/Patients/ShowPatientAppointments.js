@@ -93,7 +93,10 @@ export default function ShowPatientAppointments() {
   const fetchDoctors = async () => {
     try {
       const response = await axios.get(`${BaseUrl}/doctor`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          "ngrok-skip-browser-warning": true,
+          Authorization: `Bearer ${token}`
+        },
         signal: controller.signal,
       });
       if (response.data.status === 1) {
@@ -124,7 +127,11 @@ export default function ShowPatientAppointments() {
       if (status) url += `&filter[status]=${status}`;
 
       const response = await axios.get(url, {
-        headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "ngrok-skip-browser-warning": true,
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`
+        },
       });
 
       if (response.data.status === 1) {
@@ -172,6 +179,7 @@ export default function ShowPatientAppointments() {
     },
     {
       headers: {
+        "ngrok-skip-browser-warning": true,
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
@@ -227,13 +235,12 @@ export default function ShowPatientAppointments() {
     const formData = new FormData();
     formData.append("appointment_status", status);
     formData.append("_method", "patch");
-    console.log(status);
-    console.log(appointmentId);
     try {
       const response = await axios.post(
         `${BaseUrl}/appointment/${appointmentId}`, formData,
         {
           headers: {
+            "ngrok-skip-browser-warning": true,
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },

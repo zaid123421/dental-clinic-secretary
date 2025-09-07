@@ -46,6 +46,10 @@ export default function Appointments() {
 
   const dropdownRef = useRef(null);
 
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
   // Cookies
   const cookie = new Cookies();
   // Get The Token That Stored In The Browser
@@ -77,7 +81,10 @@ export default function Appointments() {
     const fetchDoctors = async () => {
       try {
         const response = await axios.get(`${BaseUrl}/doctor`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning" : true,
+          },
           signal: controller.signal,
         });
         if (response.data.status === 1) {
@@ -95,28 +102,6 @@ export default function Appointments() {
       }
     };
 
-    const fetchPatients = async () => {
-      try {
-        const response = await axios.get(`${BaseUrl}/patient`, {
-          headers: { Authorization: `Bearer ${token}` },
-          signal: controller.signal,
-        });
-        if (response.data.status === 1) {
-          setPatients(
-            response.data.data.data.map((pat) => ({
-              value: pat.id,
-              label: pat.name,
-            }))
-          );
-        }
-      } catch (error) {
-        if (error.name !== "CanceledError") {
-          console.error("Error fetching patients:", error);
-        }
-      }
-    };
-
-    fetchPatients();
     fetchDoctors();
 
     return () => controller.abort();
@@ -133,6 +118,39 @@ export default function Appointments() {
   return () => {
     document.removeEventListener("mousedown", handleClickOutside);
   };
+  }, []);
+
+  const fetchPatients = async (pageNum = 1) => {
+    if (loading || (lastPage && pageNum > lastPage)) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.get(`${BaseUrl}/patient?page=${pageNum}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": true,
+        },
+      });
+
+      if (response.data.status === 1) {
+        const patientsData = response.data.data.data.map((pat) => ({
+          value: pat.id,
+          label: pat.name,
+        }));
+
+        setPatients((prev) => [...prev, ...patientsData]);
+        setPage(response.data.data.current_page);
+        setLastPage(response.data.data.last_page);
+      }
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatients(1);
   }, []);
 
   const formatDateTime = (value) => {
@@ -178,6 +196,7 @@ export default function Appointments() {
     },
     {
       headers: {
+        "ngrok-skip-browser-warning": true,
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
@@ -227,6 +246,7 @@ export default function Appointments() {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning" : true,
           },
         }
       );
@@ -263,6 +283,7 @@ export default function Appointments() {
         `${BaseUrl}/appointment/${appointmentId}`, formData,
         {
           headers: {
+            "ngrok-skip-browser-warning": true,
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
@@ -527,6 +548,12 @@ export default function Appointments() {
                   onChange={(option) => setPatientId(option.value)}
                   placeholder="Search Patient..."
                   isSearchable
+                  onMenuScrollToBottom={() => {
+                    if (page < lastPage && !loading) {
+                      fetchPatients(page + 1);
+                    }
+                  }}
+                  isLoading={loading}
                 />
               </div>
 

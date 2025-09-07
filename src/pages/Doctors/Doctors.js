@@ -53,6 +53,7 @@ export default function Doctors() {
     axios
       .get(`${BaseUrl}/doctor`, {
         headers: {
+          "ngrok-skip-browser-warning": true,
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
